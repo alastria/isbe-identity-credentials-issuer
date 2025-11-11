@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "deploy-component.fullname" $ }}
+  labels:
+    {{- include "deploy-component.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "deploy-component.labels.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "deploy-component.labels.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "deploy-component.name" $ }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.port }}
+          env:
+          {{- range $key, $value := .Values.app.envs }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+          {{- end }}
+          {{- range $key, $value := .Values.secrets }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "deploy-component.fullname" $ }}
+                  key: {{ $key }}
+          {{- end }}
+#            - name: metrics
+#              containerPort: 9113
+          # ... resto de la configuración del contenedor ...
+#      volumes:
+#        - name: mi-app-data-volume
+#          persistentVolumeClaim:
+#            claimName: mi-app-pvc

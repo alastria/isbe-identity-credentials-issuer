@@ -1,0 +1,196 @@
+{% extends "admin/base_site.html" %}
+
+{% load static %}
+
+{% block content %}
+<!-- Modal Box -->
+<div class="modal fade" tabindex="-1" id="loadingModal" style="z-index: 1050 !important;">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Generating Credential</h5>
+      </div>
+      <div class="modal-body">
+
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border text-primary" role="status" id="loading">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="alert alert-danger mt-3 d-none"></div>
+
+        <textarea id="resultText" class="form-control mt-3" rows="5" style="display: none;"></textarea>
+      </div>
+      <div class="modal-footer" id="modal-footer" style="display: none;">
+        <button type="button" class="btn btn-primary" data-dismiss="modal"
+          style="background-color: #EB5B5B;">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Form -->
+<div class="container" id="self-assertion">
+  <h1>Self Assertion Verifiable Credentials</h1>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <!-- Choose Credential Type -->
+      <label for="options">Choose the credential type:</label>
+      <select id="options" name="Options" class="form-control">
+        <option value="">-- Select one type --</option>
+        <option value="ReferencedResourceURL">Referenced Resource</option>
+      </select>
+      <!-- Choose Entity -->
+      <label class="pt-2" for="entity">Choose an entity:</label>
+      <select id="entity" name="Entity" class="form-control">
+        <option value="">-- Select one entity --</option>
+        {% for entity in entities %}
+        <option value="{{ entity.id }}">{{ entity.id }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group row d-none" id="fields_for_referenced_document">
+      <label for="url" class="col-auto col-form-label">Referenced Resource's URL:</label>
+      <div class="col">
+          <input type="text" id="url_field" name="URL" class="form-control">
+      </div>
+    </div>
+    <button disabled id="send_button" type="submit" class="btn btn-primary">Generate Credential</button>
+  </form>
+</div>
+<script>
+  const select = document.getElementById("options");
+  const entitySelect = document.getElementById("entity");
+  const button = document.getElementById("send_button");
+  const fieldsReferencedDocument = document.getElementById("fields_for_referenced_document");
+  // DATA FOR ATTACHED DOCUMENT
+  const urlField = document.getElementById("url_field");
+  let entityHasBeenSelected = false;
+  let dataHasBeenProvided = false;
+  entitySelect.addEventListener("change", function () {
+    if (this.value) {
+      entityHasBeenSelected = true;
+    } else {
+      entityHasBeenSelected = false;
+    }
+    checkButtonCondition()
+  });
+
+  select.addEventListener("change", function () {
+    if (this.value === "ReferencedResourceURL") {
+      fieldsReferencedDocument.classList.remove("d-none");
+    } else {
+      fieldsReferencedDocument.classList.add("d-none");
+    }
+  })
+
+  urlField.addEventListener("input", function () {
+    if (this.value.trim().length) {
+      dataHasBeenProvided = true;
+    } else {
+      dataHasBeenProvided = false;
+    }
+    checkButtonCondition();
+  });
+
+  button.addEventListener("click", function (event) {
+    event.preventDefault();
+    const modalFooter = document.getElementById("modal-footer");
+    modalFooter.style.display = "none";
+    const resultText = document.getElementById("resultText");
+    resultText.style.display = "none";
+    resultText.value = "";
+    const errorSection = document.getElementById("errorMessage");
+    errorSection.classList.add("d-none");
+    const loader = document.getElementById("loading");
+    loader.classList.remove("d-none");
+    let loadingModal = $("#loadingModal");
+    loadingModal.modal({
+      backdrop: false,
+      keyboard: false,
+      focus: false
+    });
+    // REMOVE BLUR EFFECT -> DONT KWOW WHY IT HAPPENS
+    document.body.style.filter = "none";
+    document.querySelectorAll("*").forEach(el => {
+      if (window.getComputedStyle(el).filter.includes("blur")) {
+        el.style.filter = "none";
+      }
+    });
+    const backend = "{{ backend }}";
+    const url = `${backend}/${entitySelect.value}/credentials/self-assertion/`;
+
+    // TODO: This will need to be changed after we add a second credential type
+    credential_data = getCredentialData(select.value)
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({
+        credential_type: select.value,
+        credential_data: credential_data
+      })
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          const content = await response.text();
+          resultText.value = content.replace(/^"(.*)"$/, '$1');
+          resultText.style.display = "block";
+        } else {
+          const content = await response.json();
+          errorSection.innerText =
+            `There was an error with the request: ${
+              JSON.stringify(content, null, " ")
+            }`;
+          errorSection.classList.remove("d-none");
+        }
+      })
+      .catch((error) => {
+        errorSection.innerText = "There was an error with the connection";
+        errorSection.classList.remove("d-none");
+      })
+      .finally(() => {
+        loader.classList.add("d-none");
+        const modalFooter = document.getElementById("modal-footer");
+        modalFooter.style.display = "block";
+      });
+  });
+
+  function checkButtonCondition() {
+    if (dataHasBeenProvided && entityHasBeenSelected) {
+      button.disabled = false;
+    } else {
+      button.disabled = true;
+    }
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      let cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].trim();
+        if (cookie.startsWith(name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function getCredentialData(credentialType) {
+    if (credentialType = "ReferencedResourceURL") {
+      return {
+        uri: urlField.value
+      }
+    }
+  }
+
+</script>
+{% endblock %}

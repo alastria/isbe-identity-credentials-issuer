@@ -1,0 +1,9 @@
+
+.brand-link .custom-logo-img {
+    border-top-right-radius: 15px!important;
+    border-bottom-left-radius: 15px!important;
+}
+
+.brand-link .brand-text {
+    display: ruby !important;
+}

@@ -1,0 +1,109 @@
+
+services:
+  redis:
+    image: redis
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+        - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: identfy-third-party
+    command: sh ./entrypoint.sh
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      ALLOWED_HOSTS: localhost,127.0.0.1,backend
+    volumes:
+      - .:/code/
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+      - redis
+    mem_limit: 2g
+    mem_reservation: 1g
+    memswap_limit: 3g
+    restart: unless-stopped
+    oom_kill_disable: false
+
+  celery:
+    image: identfy-third-party
+    command: celery -A project worker -l info -E
+    environment:
+      REDIS_HOST: redis
+      DJANGO_DEBUG: 1
+      REDIS_BROKER_URL: 'redis://redis:6379/0'
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      DEBUG: 1
+    volumes:
+      - .:/code/
+    depends_on:
+      - postgres
+      - redis
+
+  flower:
+    image: mher/flower
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=8888
+    ports:
+      - 8888:8888
+    depends_on:
+      - postgres
+      - redis
+
+
+  pgweb:
+    image: sosedoff/pgweb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '5433:8081'
+    environment:
+        PGWEB_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8081/ || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  prometheus_data:

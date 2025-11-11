@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "deploy-component.fullname" . }}
+  labels:
+    # Etiqueta clave que usará el ServiceMonitor para encontrar este servicio
+    app: {{ include "deploy-component.name" . }}
+spec:
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.app.port }}
+      protocol: TCP
+      name: http
+    #  name: http
+    # Renombrado a 'metrics' para que coincida con el ServiceMonitor, ya que usa el mismo puerto
+    # Puerto para que Prometheus recoja las métricas
+    #- port: {{ .Values.service.metricsPort }}
+    #  targetPort: metrics
+    #  protocol: TCP
+    #  name: metrics
+  selector:
+    app.kubernetes.io/name: {{ include "deploy-component.name" . }}

@@ -1,0 +1,172 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-03-05 08:51+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: demo/apps.py:8
+msgid "Demo"
+msgstr "Demo"
+
+#: demo/enums.py:10
+msgid "Draft"
+msgstr "Borrador"
+
+#: demo/enums.py:11
+msgid "Correct"
+msgstr "Correcto"
+
+#: demo/enums.py:12
+msgid "Expired"
+msgstr "Expirada"
+
+#: demo/enums.py:13
+msgid "Canceled"
+msgstr "Cancelada"
+
+#: demo/models.py:9
+msgid "Name"
+msgstr "Nombre"
+
+#: demo/models.py:10
+msgid "Description"
+msgstr "Descripción"
+
+#: demo/models.py:12
+msgid "Data1 status"
+msgstr "Estado Data1"
+
+#: demo/models.py:13
+msgid "Expiration date"
+msgstr "Fecha de expiración"
+
+#: demo/models.py:14
+msgid "Active"
+msgstr "Activo"
+
+#: demo/models.py:17 demo/models.py:18
+msgid "Data1"
+msgstr ""
+
+msgid "My User"
+msgstr "Mi Usuario"
+
+msgid "Phone"
+msgstr "Teléfono"
+
+#: demo/utils/export_data.py:44
+msgid "YES"
+msgstr "SI"
+
+#: demo/utils/export_data.py:45
+msgid "NO"
+msgstr "NO"
+
+
+
+#: myvenv/lib/python3.10/site-packages/django/forms/fields.py:91
+
+msgid "This field is required."
+msgstr "Este campo es requerido."
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:28
+msgid "Password Reset Token"
+msgstr "Restablecimiento de Token"
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:29
+msgid "Password Reset Tokens"
+msgstr "Restablecimiento de Tokens"
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:44
+msgid "The User which is associated to this password reset token"
+msgstr "El usuario asociado a este token de restablecimiento de contraseña."
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:49
+msgid "When was this token generated"
+msgstr "Cuándo se generó este token"
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:54
+msgid "Key"
+msgstr "Clave"
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:61
+msgid "The IP address of this session"
+msgstr "La dirección IP de esta sesión"
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/models.py:68
+msgid "HTTP User Agent"
+msgstr ""
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/serializers.py:36
+msgid "The OTP password entered is not valid. Please check and try again."
+msgstr "La contraseña OTP ingresada no es válida. Por favor revisa e intenta de nuevo."
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/serializers.py:45
+msgid "The token has expired"
+msgstr "El token ha expirado"
+
+#: myvenv/lib/python3.10/site-packages/django_rest_passwordreset/serializers.py:50
+msgid "Password"
+msgstr "Contraseña"
+
+#: operations/views.py:25
+msgid "Element saved successfully."
+msgstr "Elemento guardado correctamente."
+
+#: operations/views.py:46
+msgid "Authentication is required"
+msgstr "Autenticación requerida"
+
+#: project/settings.py:28
+msgid "Español"
+msgstr ""
+
+#: project/settings.py:300
+msgid "Welcome to the Demo Admin Site"
+msgstr "Bienvenido a Demo-Backend"
+
+#: project/settings.py:315
+msgid "Home"
+msgstr "Inicio"
+
+#: templates/registration/password_reset.html:16
+msgid ""
+"Has solicitado un cambio de contraseña. Para poder reestablecer tu "
+"contraseña, Ingrese su dirección de correo electrónico a continuación y le "
+"enviaremos un correo electrónico que le permitirá restablecerla."
+msgstr ""
+
+#: templates/registration/password_reset.html:23
+msgid "Volver a iniciar sesión"
+msgstr ""
+
+#: templates/registration/password_reset.html:25
+msgid "Actualizar acceso"
+msgstr ""
+
+#: templates/registration/password_reset_done_.html:6
+msgid "Password Reset Done"
+msgstr "Restablecimiento de contraseña hecho"
+
+#: user/signals.py:19
+msgid "Password reset for Demo"
+msgstr "Restablecimiento de contraseña para Demo"
+
+msgid "Thanks for spending some quality time with the Web site today."
+msgstr "Gracias por pasar un rato agradable en este sitio."
+
+msgid "Welcome to Demo"
+msgstr "Bienvenido a Demo"

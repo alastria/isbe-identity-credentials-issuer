@@ -1,0 +1,55 @@
+FROM python:3.12 AS build
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+RUN mkdir /code
+WORKDIR /code
+
+ADD pyproject.toml /code/
+ADD requirements.txt /code/
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN  $HOME/.local/bin/uv venv $VIRTUAL_ENV
+RUN  $HOME/.local/bin/uv pip install --no-cache-dir -r requirements.txt --prerelease=allow
+
+
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gettext libpango-1.0-0 libpangoft2-1.0-0 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/*
+
+    # Install jpeg
+    #    libjpeg62-turbo-dev libopenjp2-7-dev libxcb-dri3-0 \
+
+ENV VIRTUAL_ENV=/opt/venv
+COPY --from=build $VIRTUAL_ENV $VIRTUAL_ENV
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /code
+
+COPY . /code/
+
+# Ensure entrypoint.sh is executable
+RUN chmod +x /code/entrypoint.sh
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Memory management
+ENV PYTHONMALLOC=malloc
+ENV MALLOC_ARENA_MAX=2
+ENV PYTHONHASHSEED=random
+
+# Optimize garbage collection
+ENV PYTHONGC=1
+
+RUN python3 manage.py compilemessages -l es_ES
+
+
+# Descomentar para despliegues en Heroku, nos ahorramos el Dockerfile-prod
+# RUN if [ $ENV = "heroku" ]; then \
+#     python3 manage.py collectstatic --no-input; \
+#     fi
+
+CMD [ "sh", "./entrypoint.sh" ]

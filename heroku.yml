@@ -1,0 +1,17 @@
+# setup: # Specifies the add-ons and config vars to create during app provisioning
+
+build: # Specifies the Dockerfile to build
+  docker:
+    web: Dockerfile
+    celery: Dockerfile
+  config:
+    ENV: heroku
+
+release: # Specifies the release phase tasks to execute
+  image: web
+  command:
+    - python manage.py deploysetup
+
+run: # Specifies process types and the commands to run for each
+  web: python manage.py runserver 0.0.0.0:"$PORT" 
+  celery: celery -A project worker -l info -E
