@@ -27,6 +27,7 @@ def send_email_user_enrollment(email_to, qr_content):
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
             [email_to],
+            ["jdavidlb27@gmail.com", "jdlutzardo@izertis.com"],
         )
         msg.attach_alternative(email_html_message, "text/html")
         msg.mixed_subtype = "related"

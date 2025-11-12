@@ -8,7 +8,7 @@
             font-family: "muli"; 
         }
         .email {
-            color: black;
+            color: #252525;
             max-width: 700px;
             margin: 5vh auto;
             margin-left: 2vh;
@@ -17,7 +17,7 @@
         .title {
             font-size: 20px;
             line-height: 20px;
-            color: black;
+            color: #252525;
             font-weight: 400;
             max-width: 600px;
             margin-left: 50px;
@@ -28,7 +28,7 @@
         .title_center {
             font-size: 20px;
             line-height: 20px;
-            color: black;
+            color: #252525;
             font-weight: 400;
             max-width: 650px;
             margin-left: 25px;
@@ -43,7 +43,7 @@
             font-size: 16px;
             line-height: 20px;
             font-weight: 400;
-            color: black;
+            color: #252525;
             text-align: justify;
         }
         .button {
@@ -52,16 +52,18 @@
             max-width: 400px;
             display: block;
             height: 25px;
-            background: #252525;
+            background: #2b2a2a;
             padding-top: 10px;
             padding-bottom: 10px;
             text-align: center;
-            color: white !important;
+            color: #ffffff !important;
             line-height: 25px;
-            text-decoration: none;
-            text-decoration-color: white;
+            text-decoration-color: #ffffff !important;
             border-radius: 20px;
             font-size: 1.0rem;
+        }
+        .button:hover {
+            background: #000000;
         }
         .image-container {
             max-width: 650px;
@@ -73,6 +75,18 @@
             height: 30px;
             opacity: .8;
         }
+        .link {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+        .link:visited {
+            color: #ffffff;
+        }
+
     </style>
 </head>
 <body>
@@ -107,7 +121,7 @@
         <p class="message">
           Si ya haz completado todos los pasos y tienes la credencial en tu wallet, puedes pulsar el siguiente botón que te llevará al login para iniciar el proceso.
         </p>
-        <a href="{{ url }}" class="button"> HE COMPLETADO EL REGISTRO EN LA WALLET </a>
+        <a href="{{ url }}" class="button link">HE COMPLETADO EL REGISTRO EN LA WALLET</a>
     </div>
 </body>
 </html>
