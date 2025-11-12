@@ -26,8 +26,7 @@ def send_email_user_enrollment(email_to, qr_content):
             _("[ISBE] Has sido designado para completar el proceso técnico de enrolamiento en "),
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
-            # [email_to],
-            ["jdavidlb27@gmail.com", "jdlutzardo@izertis.com"],
+            [email_to],
         )
         msg.attach_alternative(email_html_message, "text/html")
         msg.mixed_subtype = "related"
