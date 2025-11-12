@@ -47,8 +47,8 @@ def get_claims(request: HttpRequest) -> Tuple[Optional[dict[str, Any]]]:
             "prueba1": {"prueba1": 1},
             "prueba2": '{"prueba2":1}',
             "email_verified": "true",
-            "name": "Yeray Rodríguez",
-            "preferred_username": "yrodriguez@izertis.com",
+            "name": "David Lutzardo",
+            "preferred_username": "jdavidlb27@gmail.com",
             "power": [
                 {"type": "domain", "domain": "DOME", "function": "Onboarding", "action": ["execute"]},
                 {"type": "domain", "domain": "ISBE", "function": "Onboarding", "action": ["execute"]},
@@ -57,9 +57,9 @@ def get_claims(request: HttpRequest) -> Tuple[Optional[dict[str, Any]]]:
             "org_legal_id_no": "VATFR-B12345678",
             "org_legal_id": "VATES-11111111K",
             "org_legal_id2": "VATES-A66721499:IDCES-99999999R",
-            "given_name": "Yeray",
-            "family_name": "Rodríguez",
-            "email": "yrodriguez@izertis.com",
+            "given_name": "David",
+            "family_name": "Lutzardo",
+            "email": "jdavidlb27@gmail.com",
         }
     except Exception as e:
         print(e)

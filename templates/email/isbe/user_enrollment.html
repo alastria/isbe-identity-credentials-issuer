@@ -1,0 +1,114 @@
+{% load i18n %}{% autoescape off %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style type="text/css">
+        body {
+            font-family: "muli"; 
+        }
+        .email {
+            color: black;
+            max-width: 700px;
+            margin: 5vh auto;
+            margin-left: 2vh;
+            margin-right: 2vh;
+        }
+        .title {
+            font-size: 20px;
+            line-height: 20px;
+            color: black;
+            font-weight: 400;
+            max-width: 600px;
+            margin-left: 50px;
+            padding-top: 15px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .title_center {
+            font-size: 20px;
+            line-height: 20px;
+            color: black;
+            font-weight: 400;
+            max-width: 650px;
+            margin-left: 25px;
+            margin-right: 25px;
+            padding-top: 15px;
+            text-align: -webkit-center;
+            line-height: 1.6;
+        }
+        .message {
+            margin-top: 30px !important;
+            padding-left: 5px;
+            font-size: 16px;
+            line-height: 20px;
+            font-weight: 400;
+            color: black;
+            text-align: justify;
+        }
+        .button {
+            margin-top: 40px;
+            margin-left: 2vh;
+            display: block;
+            width: 200px;
+            height: 25px;
+            background: #5038f3;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            text-align: center;
+            color: white !important;
+            line-height: 25px;
+            text-decoration: none;
+            text-decoration-color: white;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+        .image-container {
+            max-width: 650px;
+            text-align: center;
+        }
+        .image {
+            margin-top: 32px;
+            margin-left: 32px;
+            height: 30px;
+            opacity: .8;
+        }
+    </style>
+</head>
+<body>
+    <div class="email">
+        <div class="image-container">
+            <img src="cid:logo_image" alt="Logo" class="image" />
+        </div>
+        <p class="title_center">Has sido designado para completar el proceso técnico de enrolamiento en ISBE</p>
+        <p class="message">
+          Hola,
+        </p>
+        <p class="message">
+          Eres la persona encargada de completar el <b>proceso técnico de enrolamiento</b> en el <b>portal ISBE</b>. Este paso es necesario para habilitar el acceso y configuración de los servicios asociados a tu organización.
+        </p>
+        <p class="message">
+          Te recomendamos realizar este proceso cuanto antes para no retrasar la activación de tu organización en la plataforma.
+        </p>
+        <p class="message">
+          Para hacerlo debes tener descargada la wallet. Si aún no la tienes, descárgala y registrate. Puedes descargarla aquí si eres <b>IOS</b> o aquí si eres <b>ANDROID</b>.
+        </p>
+        <p class="message">
+          Una vez iniciado sesión en la wallet, escanea el código QR que encontrarás más abajo. Cuando lo hayas hecho, tendrás la credencial que te permite (sólo) realizar el proceso de enrolamiento.
+        </p>
+        <p class="message">
+          Gracias por tu colaboración,
+        </p>
+        <p class="message">
+          <b>El equipo de ISBE</b>
+        </p>
+        <hr />
+        <img src="cid:qr_image" alt="QR Code" style="margin-top: 20px; width: 200px; height: 200px;" />
+        <p class="message">
+          Si ya haz completado todos los pasos y tienes la credencial en tu wallet, puedes pulsar el siguiente botón que te llevará al login para iniciar el proceso.
+        </p>
+        <a href="{{ url }}" class="button"> HE COMPLETADO EL REGISTRO EN LA WALLET </a>
+    </div>
+</body>
+</html>
+{% endautoescape %}

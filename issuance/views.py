@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from common.auth import get_claims
 from common.identfy_conector import get_qr, identify_get_credential, identify_register_preauth_code
 from common.tmf_api import tmf_get_individual, tmf_get_organization
+from issuance.emails import send_email_user_enrollment
 from issuance.enum import IssuedCredentialStatus
 from issuance.models import CONFIG_KEY_PROFILE, CONFIG_KEY_VC_TYPES, Configuration, IssuedCredential
 from issuance.serializers import (
@@ -151,7 +152,9 @@ def employee_issuance(request):
         }
         log.debug(user_data)
 
-        content, ctype = get_qr()
+        # TODO validade DNI?
+
+        qr_content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="employee").first()
         if not vc_type:
             raise Exception("VC type for employee is not configured")
@@ -168,7 +171,9 @@ def employee_issuance(request):
             token_claims=claims,
             status=IssuedCredentialStatus.PENDING.value,
         )
-        return HttpResponse(content, content_type=ctype)
+
+        send_email_user_enrollment(claims.get("email"), qr_content)
+        return JsonResponse({"status": "ok"}, safe=False)
     except Exception:
         traceback.print_exc()
         return JsonResponse({"detail": "Internal error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
