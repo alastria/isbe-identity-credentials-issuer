@@ -4,7 +4,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
-from issuance.views import CONFIG_KEY_PROFILE, CONFIG_KEY_VC_TYPES, Configuration
+from issuance.models import (
+    CONFIG_KEY_API_VERSION,
+    CONFIG_KEY_APP,
+    CONFIG_KEY_INSTANCE,
+    CONFIG_KEY_PROFILE,
+    CONFIG_KEY_VC_TYPES,
+    Configuration,
+)
 
 
 class Command(BaseCommand):
@@ -32,5 +39,8 @@ class Command(BaseCommand):
             return  # Already initialized
 
         Configuration.objects.create(key=CONFIG_KEY_PROFILE, value="isbe")
+        Configuration.objects.create(key=CONFIG_KEY_APP, value="oid")
+        Configuration.objects.create(key=CONFIG_KEY_INSTANCE, value="isbe-instance")
+        Configuration.objects.create(key=CONFIG_KEY_API_VERSION, value="v1")
         Configuration.objects.create(key=CONFIG_KEY_VC_TYPES, value="RepresentativeVC", tag="representative")
         Configuration.objects.create(key=CONFIG_KEY_VC_TYPES, value="EmployeeVC", tag="employee")

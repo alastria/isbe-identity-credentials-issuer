@@ -5,6 +5,9 @@ from django.utils.translation import gettext_lazy as _
 
 CONFIG_KEY_VC_TYPES = "VC_TYPES"
 CONFIG_KEY_PROFILE = "PROFILE"
+CONFIG_KEY_APP = "APP"
+CONFIG_KEY_INSTANCE = "INSTANCE"
+CONFIG_KEY_API_VERSION = "API_VERSION"
 
 
 class Configuration(models.Model):
