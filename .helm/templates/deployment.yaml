@@ -33,6 +33,13 @@ spec:
                   name: {{ include "deploy-component.fullname" $ }}
                   key: {{ $key }}
           {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
 #            - name: metrics
 #              containerPort: 9113
           # ... resto de la configuración del contenedor ...
