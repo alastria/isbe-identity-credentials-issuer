@@ -35,12 +35,11 @@ class Command(BaseCommand):
         self._load_initial_data()
 
     def _load_initial_data(self):
-        if Configuration.objects.count() > 0:
-            return  # Already initialized
-
-        Configuration.objects.create(key=CONFIG_KEY_PROFILE, value="isbe")
-        Configuration.objects.create(key=CONFIG_KEY_APP, value="oid")
-        Configuration.objects.create(key=CONFIG_KEY_INSTANCE, value="isbe-instance")
-        Configuration.objects.create(key=CONFIG_KEY_API_VERSION, value="v1")
-        Configuration.objects.create(key=CONFIG_KEY_VC_TYPES, value="RepresentativeVC", tag="representative")
-        Configuration.objects.create(key=CONFIG_KEY_VC_TYPES, value="EmployeeVC", tag="employee")
+        Configuration.objects.get_or_create(key=CONFIG_KEY_PROFILE, defaults={"value": "isbe"})
+        Configuration.objects.get_or_create(key=CONFIG_KEY_APP, defaults={"value": "oid"})
+        Configuration.objects.get_or_create(key=CONFIG_KEY_INSTANCE, defaults={"value": "isbe-instance"})
+        Configuration.objects.get_or_create(key=CONFIG_KEY_API_VERSION, defaults={"value": "v1"})
+        Configuration.objects.get_or_create(
+            key=CONFIG_KEY_VC_TYPES, tag="representative", defaults={"value": "RepresentativeVC"}
+        )
+        Configuration.objects.get_or_create(key=CONFIG_KEY_VC_TYPES, tag="employee", defaults={"value": "EmployeeVC"})
