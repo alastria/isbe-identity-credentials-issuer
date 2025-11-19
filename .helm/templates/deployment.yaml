@@ -21,6 +21,7 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.app.port }}
+{{- if or (and .Values.app.envs (gt (len .Values.app.envs) 0)) (and .Values.secrets (gt (len .Values.secrets) 0)) }}
           env:
           {{- range $key, $value := .Values.app.envs }}
             - name: {{ $key }}
@@ -33,6 +34,7 @@ spec:
                   name: {{ include "deploy-component.fullname" $ }}
                   key: {{ $key }}
           {{- end }}
+{{- end }}
           livenessProbe:
             httpGet:
               path: /api/v1/health
