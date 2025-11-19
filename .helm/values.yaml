@@ -49,7 +49,7 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     # Al usar group.name, los tags deben de ser iguales.
-    alb.ingress.kubernetes.io/tags: Application=isbe-apps, Environment=${EKS_CLUSTER_NAME}
+    alb.ingress.kubernetes.io/tags: Application=isbe-apps
     # Opcional: Para usar un certificado ACM existente
     alb.ingress.kubernetes.io/certificate-arn: ${ARN_CERT}
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'

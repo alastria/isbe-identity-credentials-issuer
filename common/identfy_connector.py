@@ -2,10 +2,8 @@ from datetime import datetime, timedelta
 
 import requests
 
+from issuance.helper import get_url_base_for_connector
 from project.settings import IDENTFY_CONNECTOR_API_URL
-
-if not IDENTFY_CONNECTOR_API_URL:
-    raise Exception("IDENTFY_CONNECTOR_API_URL setting is missing")
 
 
 # TODO: ¿cambiar llamaa a /oid/credential-offer?
@@ -14,7 +12,8 @@ def get_qr():
         "accept": "application/json",
     }
     # TODO: request añadir parametros cuando este el conector final
-    resp = requests.get(IDENTFY_CONNECTOR_API_URL + "/credential-offer/qr", headers=headers, timeout=8)
+    # resp = requests.get(IDENTFY_CONNECTOR_API_URL + "/credential-offer/qr", headers=headers, timeout=8)
+    resp = requests.get(get_url_base_for_connector() + "/credential-offer/qr", headers=headers, timeout=8)
     resp.raise_for_status()
     ctype = resp.headers.get("Content-Type", "image/png")
     return resp.content, ctype
@@ -31,7 +30,7 @@ def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) 
         # "expires_in?": number,
         # "tx_code?": {input_mode, length, description},
     }
-    # resp = requests.post(f"{IDENTFY_CONNECTOR_API_URL}/protected/oid/preauth-code", headers=headers, json=paylod)
+    # resp = requests.post(f"{_get_url_base()}/protected/oid/preauth-code", headers=headers, json=paylod)
     print("TODO. Quitar salto identify_register_preauth_code")
     # resp.raise_for_status()
     # return resp.json()
@@ -46,7 +45,7 @@ def identify_get_credential(credential_id: str) -> dict:
     headers = {
         "accept": "application/json",
     }
-    # resp = requests.get(f"{IDENTFY_CONNECTOR_API_URL}/protected/credentials/{credential_id}", headers=headers)
+    # resp = requests.get(f"{_get_url_base()}/protected/credentials/{credential_id}", headers=headers)
     # resp.raise_for_status()
     # return resp.json()
     print("TODO. Quitar salto identify_get_credential")

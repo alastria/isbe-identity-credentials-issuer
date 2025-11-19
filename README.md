@@ -103,3 +103,6 @@ La aplicación expone métricas Prometheus en `/metrics`. Se puede configurar el
 - `/metrics`
   - Destinado a ser consumido por Prometheus
   - Abierto, no implementa mecanismos de autenticación/autorización
+
+
+Copyright © 2025 Comunidad de Madrid & Alastria

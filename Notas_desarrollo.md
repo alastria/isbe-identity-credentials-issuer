@@ -71,3 +71,25 @@ Cuando este la credencia podría llamar
     Recuperar credencial /protected/credentials/{id}
 
     Guardar datos y credenciales
+
+
+
+Resumen:
+
+En los endpoints del third party hay 2 campos nuevos que hemos metido para compatibilidad futura, que son app y instance. Si quiers puedes ignorarlos o comprobar que coinciden con 2 variables de entorno o configuraciones que declares. app valdrá probablemente "oid", y instance si será un valor concreto que te tendría que confirmar. 
+
+NO en /auth/requests
+    la respuesta 200 cambia, se añade un campo authorized
+    desaparece la respuesta 204
+    no recuerdo si tu devolvías un 200 o un 204. En cualquier caso, ahora tienes que devolver un 200 poniendo authorized=true
+
+cualquier error que quieras devolver (si los hay) puedes añadir un body con error y error_description
+
+en /issuance/claims
+
+    creo que antes se te pasaba vc_type, y ahora es vc_identifier. Simplemente un cambio de nombre
+    en la respuesta antes había claims y pasa a llamarse subject_claims. Aparece additional_claims y context_claims (antes solo context) No los necesitas
+
+todos los endpoints de conector pasan a tener versionado y un elemento nuevo en el  path llamado {endpoint}. Si el valor "instance" del primer punto lo guardaste, lo puedes usar para ponerlo aquí, son valores equivalentes pero con nombres distintos por el contexto. 
+
+Revisa por si ves algún otro cambio que no recuerdo, y si tienes  alguna duda hablamos

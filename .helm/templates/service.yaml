@@ -11,8 +11,6 @@ spec:
       targetPort: {{ .Values.app.port }}
       protocol: TCP
       name: http
-    #  name: http
-    # Renombrado a 'metrics' para que coincida con el ServiceMonitor, ya que usa el mismo puerto
     # Puerto para que Prometheus recoja las métricas
     #- port: {{ .Values.service.metricsPort }}
     #  targetPort: metrics
