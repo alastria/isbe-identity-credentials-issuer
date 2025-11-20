@@ -11,6 +11,7 @@ secrets:
   # Agrega aquí tus secretos en formato clave: valor
   SECRET_KEY: ${SECRET_KEY}
   DATABASE_URL: ${DATABASE_URL}
+  EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
 
 app:
   port: 8000

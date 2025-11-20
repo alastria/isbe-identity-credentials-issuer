@@ -103,6 +103,10 @@ jobs:
           echo "🛑 KEYCLOAK_JWKS_URL is not set in variables"
           exit 1
         fi
+        if [[ -z "${{ vars.EMAIL_HOST_PASSWORD }}" ]]; then
+          echo "🛑 EMAIL_HOST_PASSWORD is not set in variables"
+          exit 1
+        fi
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -138,7 +142,8 @@ jobs:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         IDENTFY_CONNECTOR_API_URL: ${{ vars.IDENTFY_CONNECTOR_API_URL }}
         TMF_API_URL: ${{ vars.TMF_API_URL }}
-        KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}   
+        KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}
+        EMAIL_HOST_PASSWORD: ${{ vars.EMAIL_HOST_PASSWORD }}
       run: |
         echo "🏗️ Environment: ${{ vars.ENVIRONMENT }}"
         echo "🚀 Desplegando desde rama: ${{ github.ref_name }}"
