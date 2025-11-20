@@ -163,8 +163,8 @@ jobs:
 
         envsubst < values.yaml | helm template . --debug --values - 
 
-        echo " > Checking if deployment exists..."
-        if kubectl -n ${{ vars.EKS_NAMESPACE }} get secrets | grep ${{ vars.APP_NAME }}; then
+        echo " > Checking if deployment exists... (for example: sh.helm.release.v1.${{ vars.APP_NAME }}.v1)"
+        if kubectl -n ${{ vars.EKS_NAMESPACE }} get secrets | grep ${{ vars.APP_NAME }}.v; then
           echo " > Deployment exists."
           echo " > Updating Helm chart values with image details..."
           envsubst < values.yaml | helm upgrade ${{ vars.APP_NAME }} . --namespace ${{ vars.EKS_NAMESPACE }} --create-namespace --values -
