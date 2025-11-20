@@ -2,9 +2,6 @@ from datetime import datetime, timedelta
 
 import requests
 
-from issuance.helper import get_url_base_for_connector
-from project.settings import IDENTFY_CONNECTOR_API_URL
-
 
 # TODO: ¿cambiar llamaa a /oid/credential-offer?
 def get_qr():
@@ -13,7 +10,10 @@ def get_qr():
     }
     # TODO: request añadir parametros cuando este el conector final
     # resp = requests.get(IDENTFY_CONNECTOR_API_URL + "/credential-offer/qr", headers=headers, timeout=8)
-    resp = requests.get(get_url_base_for_connector() + "/credential-offer/qr", headers=headers, timeout=8)
+    # resp = requests.get(get_url_base_for_connector() + "/credential-offer/qr", headers=headers, timeout=8)
+    resp = requests.get(
+        "https://identfy.izer.tech/95b3d953-6ac2-40c8-8707-b5f58dbb2279/credential-offer/qr", headers=headers, timeout=8
+    )
     resp.raise_for_status()
     ctype = resp.headers.get("Content-Type", "image/png")
     return resp.content, ctype

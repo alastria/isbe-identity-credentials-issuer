@@ -235,31 +235,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
+# Email settings
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.serviciodecorreo.es")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465))
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-
-# POSTMARK
-POSTMARK_API_KEY = os.getenv("POSTMARK_API_KEY", "")
-DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "hello@izer.tech")
-POSTMARK = {
-    "TOKEN": POSTMARK_API_KEY,
-    "TEST_MODE": False,
-    "VERBOSITY": 0,
-}
-if POSTMARK_API_KEY:
-    EMAIL_BACKEND = "postmarker.django.EmailBackend"
-    EMAIL_HOST = "smtp.postmarkapp.com"
-    EMAIL_HOST_USER = POSTMARK_API_KEY
-    EMAIL_HOST_PASSWORD = POSTMARK_API_KEY
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    DEFAULT_FROM_EMAIL = DEFAULT_FROM_EMAIL
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-    EMAIL_HOST = "localhost"
-    EMAIL_PORT = 1025
-    EMAIL_USE_TLS = False
-    EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "register@redisbe.com")
+DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "register@redisbe.com")
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_BACKEND = "postmarker.django.EmailBackend"
+#    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 JAZZMIN_SETTINGS: Dict[str, Any] = {
