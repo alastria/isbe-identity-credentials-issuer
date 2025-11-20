@@ -143,7 +143,7 @@ jobs:
         IDENTFY_CONNECTOR_API_URL: ${{ vars.IDENTFY_CONNECTOR_API_URL }}
         TMF_API_URL: ${{ vars.TMF_API_URL }}
         KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}
-        EMAIL_HOST_PASSWORD: ${{ vars.EMAIL_HOST_PASSWORD }}
+        EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
       run: |
         echo "🏗️ Environment: ${{ vars.ENVIRONMENT }}"
         echo "🚀 Desplegando desde rama: ${{ github.ref_name }}"
