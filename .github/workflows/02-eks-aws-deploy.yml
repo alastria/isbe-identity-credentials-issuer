@@ -103,8 +103,8 @@ jobs:
           echo "🛑 KEYCLOAK_JWKS_URL is not set in variables"
           exit 1
         fi
-        if [[ -z "${{ vars.EMAIL_HOST_PASSWORD }}" ]]; then
-          echo "🛑 EMAIL_HOST_PASSWORD is not set in variables"
+        if [[ -z "${{ secrets.EMAIL_HOST_PASSWORD }}" ]]; then
+          echo "🛑 EMAIL_HOST_PASSWORD is not set in secrets"
           exit 1
         fi
     - name: Configure AWS credentials
