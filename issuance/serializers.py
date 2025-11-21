@@ -25,3 +25,20 @@ class NotificationSerializer(serializers.Serializer):
     subject_id = serializers.CharField(required=True)
     credential_id = serializers.CharField(required=True)
     type = serializers.CharField(required=True)
+
+
+class GetCredentialsByOrganizationIdentitySerializer(serializers.Serializer):
+    credential_id = serializers.CharField(required=False, allow_blank=True)
+    organization_identity = serializers.CharField(required=True)
+    vc_type = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.CharField(required=False, allow_blank=True)
+    creation_at = serializers.DateTimeField(required=False)
+    update_at = serializers.DateTimeField(required=False)
+
+
+class ListGetCredentialsByOrganizationIdentitySerializer(serializers.Serializer):
+    credentials = GetCredentialsByOrganizationIdentitySerializer(many=True)
+    page = serializers.IntegerField()
+    num_pages = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total = serializers.IntegerField()

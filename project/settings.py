@@ -241,8 +241,8 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465))
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "register@redisbe.com")
-DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "register@redisbe.com")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "no-reply@redisbe.com")
+DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "no-reply@redisbe.com")
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_BACKEND = "postmarker.django.EmailBackend"
 #    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -455,6 +455,15 @@ WEB_APP_LINK = os.environ.get("FRONTEND_URL", "")
 
 JWT_PASSWORD = os.environ.get("JWT_PASSWORD", "24c@lgo")
 
+
+LOGOUT_REDIRECT_URL = "/"
+
+OPERATOR_AUTOMATIC_STAFF = os.environ.get("OPERATOR_AUTOMATIC_STAFF", True)
+CRYPTO_SERVICE_URL = os.environ.get("CRYPTO_SERVICE_URL", "")
+
+GOOGLE_TAG_ACTIVE = int(os.environ.get("GOOGLE_TAG_ACTIVE", 0))  # Active only production deploy
+GOOGLE_TAG_KEY = os.environ.get("GOOGLE_TAG_KEY", "GTM-XXXXX")  # Set correct value for OOGLE_TAG_KEY
+
 LOGGING = {
     "version": 1,
     "filters": {
@@ -471,66 +480,19 @@ LOGGING = {
         }
     },
     "loggers": {
-        # debug show SQL queries
-        # "django.db.backends": {
-        #    "level": "DEBUG",
-        #    "handlers": ["console"],
-        # },
+        # Active for show SQL queries
+        "django.db.backends": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+        },
         "django": {
             "handlers": ["console"],
             "level": "INFO",
         },
     },
 }
-LOGOUT_REDIRECT_URL = "/"
 
-OPERATOR_AUTOMATIC_STAFF = os.environ.get("OPERATOR_AUTOMATIC_STAFF", True)
-CRYPTO_SERVICE_URL = os.environ.get("CRYPTO_SERVICE_URL", "")
-
-GOOGLE_TAG_ACTIVE = int(os.environ.get("GOOGLE_TAG_ACTIVE", 0))  # Active only production deploy
-GOOGLE_TAG_KEY = os.environ.get("GOOGLE_TAG_KEY", "GTM-XXXXX")  # Set correct value for OOGLE_TAG_KEY
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {
-        "contextvars": {"()": "project.logging.conf.ContextVarsFilter"},
-    },
-    "formatters": {
-        "console": {
-            "format": "[%(levelname)s] %(name)s: %(message)s",
-        },
-        "json": {
-            "()": "pythonjsonlogger.json.JsonFormatter",
-            "fmt": (
-                "%(asctime)s %(levelname)s %(name)s %(message)s "
-                "%(request_id)s %(method)s %(path)s "
-                "%(filename)s:%(lineno)d"
-            ),
-        },
-    },
-    "handlers": {
-        "app_json": {
-            "class": "logging.StreamHandler",
-            "filters": ["contextvars"],
-            "formatter": "json",
-            "level": LOG_LEVEL,
-        },
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "console",
-            "level": "INFO",
-        },
-    },
-    "loggers": {
-        "issuance": {
-            "handlers": ["app_json"],
-            "level": LOG_LEVEL,
-            "propagate": False,
-        },
-    },
-    "root": {"handlers": ["console"], "level": LOG_LEVEL},
-}
 
 # REST_FRAMEWORK = {
 #     "DEFAULT_AUTHENTICATION_CLASSES": [

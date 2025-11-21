@@ -16,7 +16,7 @@ def get_bearer_token_from_request(request: HttpRequest) -> Optional[str]:
     return token.strip()
 
 
-def get_claims(request: HttpRequest) -> Tuple[Optional[dict[str, Any]]]:
+def virifity_token_and_get_payload(request: HttpRequest) -> Tuple[Optional[dict[str, Any]]]:
     token = get_bearer_token_from_request(request)
     if not token:
         raise Exception("Missing Bearer token")
@@ -57,6 +57,7 @@ def get_claims(request: HttpRequest) -> Tuple[Optional[dict[str, Any]]]:
             "org_legal_id_no": "VATFR-B12345678",
             "org_legal_id": "VATES-11111111K",
             "org_legal_id2": "VATES-A66721499:IDCES-99999999R",
+            "organization_identity": "urn:ngsi-ld:organization:VATES-11111111K",
             "given_name": "David",
             "family_name": "Lutzardo",
             "email": "jdavidlb27@gmail.com",

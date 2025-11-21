@@ -52,3 +52,23 @@ def get_url_base_for_connector():
     if not instance:
         raise Exception("INSTANCE not configured")
     return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{api_version.value}/{profile.value}/{instance.value}"
+
+
+def check_and_get_errors_access_token(claims: dict) -> bool:
+    missing = []
+    # TODO: revisar todos los claims necesarios, añadir los que falten
+    # Algunos pueden cambiar de nombre o no ser obligatorios
+    if "org_legal_id" not in claims:
+        missing.append("org_legal_id")
+    if "org_name" not in claims:
+        missing.append("org_name")
+    if "email" not in claims:
+        missing.append("email")
+    if "organization_identity" not in claims:
+        missing.append("organization_identity")
+    roles_present = (
+        "realm_access" in claims and isinstance(claims["realm_access"], dict) and "roles" in claims["realm_access"]
+    )
+    if not roles_present:
+        missing.append("realm_access.roles")
+    return missing

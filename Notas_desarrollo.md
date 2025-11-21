@@ -93,3 +93,16 @@ en /issuance/claims
 todos los endpoints de conector pasan a tener versionado y un elemento nuevo en el  path llamado {endpoint}. Si el valor "instance" del primer punto lo guardaste, lo puedes usar para ponerlo aquí, son valores equivalentes pero con nombres distintos por el contexto. 
 
 Revisa por si ves algún otro cambio que no recuerdo, y si tienes  alguna duda hablamos
+
+
+/credentials/[organization_identify]
+
+
+La organización viene en el token
+puede que en un campo con nombre "organization_identify"
+
+[organization_identify] es opcional, si no está se devuelven todos y tiene permisos para todas, o solo para aquellas, comporbar en el token
+
+en token y param es la misma organizacion => devolver
+
+en token y param es diferente organizacion => se debe de comprobar que tiene permisos para esa organización, pero pendiente de poder comprobar, la información vendría en el mismo token, pero no se sabe que formato, o incluso roles como admin

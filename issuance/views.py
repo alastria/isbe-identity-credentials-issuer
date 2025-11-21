@@ -2,21 +2,24 @@ import logging
 import traceback
 from datetime import datetime
 
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponse, JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 
-from common.auth import get_claims
+from common.auth import virifity_token_and_get_payload
 from common.identfy_connector import get_qr, identify_get_credential, identify_register_preauth_code
 from common.tmf_api import tmf_get_individual, tmf_get_organization
 from issuance.emails import send_email_user_enrollment
 from issuance.enum import IssuedCredentialStatus
-from issuance.helper import get_profile, validate_request
+from issuance.helper import check_and_get_errors_access_token, get_profile, validate_request
 from issuance.models import CONFIG_KEY_VC_TYPES, Configuration, IssuedCredential
 from issuance.serializers import (
     GetClaimsSerializer,
+    GetCredentialsByOrganizationIdentitySerializer,
+    ListGetCredentialsByOrganizationIdentitySerializer,
     ListIdentifiersSerializer,
     NotificationSerializer,
 )
@@ -41,34 +44,22 @@ log = logging.getLogger(__name__)
 @api_view(["POST"])
 def representative_issuance(request):
     try:
-        claims = get_claims(request)
+        token_data = virifity_token_and_get_payload(request)
     except Exception as e:
         log.error(f"Auth error: {e}")
-        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized")
+        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
 
     try:
-        missing = []
-        if "org_legal_id" not in claims:
-            missing.append("org_legal_id")
-        if "org_name" not in claims:
-            missing.append("org_name")
-        if "email" not in claims:
-            missing.append("email")
-        roles_present = (
-            "realm_access" in claims and isinstance(claims["realm_access"], dict) and "roles" in claims["realm_access"]
-        )
-        if not roles_present:
-            missing.append("realm_access.roles")
-
+        missing = check_and_get_errors_access_token(token_data)
         if missing:
-            return send_error(status.HTTP_400_BAD_REQUEST, "Missing required claims", ", ".join(missing))
+            return send_error(status.HTTP_400_BAD_REQUEST, "Missing required data", ", ".join(missing))
 
         # TODO: validate fields
         user_data = {
-            "sub": claims.get("sub"),
-            "org_legal_id": claims.get("org_legal_id"),
-            "org_name": claims.get("org_name"),
-            "roles": (claims.get("realm_access") or {}).get("roles", []),
+            "sub": token_data.get("sub"),
+            "org_legal_id": token_data.get("org_legal_id"),
+            "org_name": token_data.get("org_name"),
+            "roles": (token_data.get("realm_access") or {}).get("roles", []),
         }
         log.debug(user_data)
 
@@ -79,7 +70,7 @@ def representative_issuance(request):
         profile = get_profile()
         if not profile:
             raise Exception("PROFILE not configured")
-        subject_id = f"{claims.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        subject_id = f"{token_data.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_register = identify_register_preauth_code(profile.value, vc_type.value, subject_id)
         print(preauth_register)
         IssuedCredential.objects.create(
@@ -87,7 +78,8 @@ def representative_issuance(request):
             subject_id=subject_id,
             preauth_code=preauth_register["preauth_code"],
             preauth_code_expires_in=preauth_register["expires_in"],
-            token_claims=claims,
+            token_data=token_data,
+            organization_identity=token_data.get("organization_identity"),
             status=IssuedCredentialStatus.PENDING.value,
         )
         return HttpResponse(content, content_type=ctype)
@@ -115,30 +107,21 @@ def representative_issuance(request):
 @api_view(["POST"])
 def employee_issuance(request):
     try:
-        claims = get_claims(request)
+        token_data = virifity_token_and_get_payload(request)
     except Exception as e:
         log.error(f"Auth error: {e}")
-        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized")
+        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
 
     try:
-        missing = []
-        # TODO: revisar claims necesarios para employee, luego puede que se pueda refactorizar con representative_issuance
-        if "org_legal_id" not in claims:
-            missing.append("org_legal_id")
-        if "org_name" not in claims:
-            missing.append("org_name")
-        if "email" not in claims:
-            missing.append("email")
-
+        missing = check_and_get_errors_access_token(token_data)
         if missing:
-            return send_error(status.HTTP_400_BAD_REQUEST, "Missing required claims", ", ".join(missing))
-
+            return send_error(status.HTTP_400_BAD_REQUEST, "Missing required data", ", ".join(missing))
         # TODO: validate fields
         user_data = {
-            "sub": claims.get("sub"),
-            "org_legal_id": claims.get("org_legal_id"),
-            "org_name": claims.get("org_name"),
-            "roles": (claims.get("realm_access") or {}).get("roles", []),
+            "sub": token_data.get("sub"),
+            "org_legal_id": token_data.get("org_legal_id"),
+            "org_name": token_data.get("org_name"),
+            "roles": (token_data.get("realm_access") or {}).get("roles", []),
         }
         log.debug(user_data)
 
@@ -150,7 +133,7 @@ def employee_issuance(request):
             raise Exception("VC type for employee is not configured")
         if not get_profile():
             raise Exception("PROFILE not configured")
-        subject_id = f"{claims.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        subject_id = f"{token_data.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_register = identify_register_preauth_code(get_profile().value, vc_type.value, subject_id)
         print(preauth_register)
         IssuedCredential.objects.create(
@@ -158,11 +141,12 @@ def employee_issuance(request):
             subject_id=subject_id,
             preauth_code=preauth_register["preauth_code"],
             preauth_code_expires_in=preauth_register["expires_in"],
-            token_claims=claims,
+            token_data=token_data,
+            organization_identity=token_data.get("organization_identity"),
             status=IssuedCredentialStatus.PENDING.value,
         )
 
-        send_email_user_enrollment(claims.get("email"), qr_content)
+        send_email_user_enrollment(token_data.get("email"), qr_content)
         return JsonResponse({"message": "sends email with QR to user"}, safe=False)
     except Exception:
         traceback.print_exc()
@@ -262,7 +246,7 @@ def get_claims_view(request):
             "No issued credential found for the given profile, vc_identifier and subject_id",
         )
     try:
-        org_legal_id = issued_credential.token_claims.get("org_legal_id")
+        org_legal_id = issued_credential.token_data.get("org_legal_id")
         if issued_credential.vc_type.lower().startswith("representative"):
             data = tmf_get_organization(org_legal_id)
         else:
@@ -331,6 +315,149 @@ def handle_notifications(request):
     except Exception as e:
         traceback.print_exc()
         log.error(f"Error processing notification: {e}")
+        return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error", str(e))
+
+
+@swagger_auto_schema(
+    method="get",
+    operation_description="Get issued credentials. Requires authentication (token) and permissions to access the specified organization_identity or admin role for all.",
+    security=[{"Bearer": []}],
+    responses={
+        200: openapi.Response("List of issued credentials", ListGetCredentialsByOrganizationIdentitySerializer),
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+    manual_parameters=[
+        openapi.Parameter(
+            name="page",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER,
+            description="Page number (optional)",
+            required=False,
+        ),
+        openapi.Parameter(
+            name="page_size",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER,
+            description="Number of items per page (optional)",
+            required=False,
+        ),
+    ],
+)
+@api_view(["GET"])
+def get_credentials(request):
+    return _get_credentials_by_organization_identity(request)
+
+
+@swagger_auto_schema(
+    method="get",
+    operation_description="Get issued credentials by organization_identity. Requires authentication (token) and permissions to access the specified organization_identity or admin role for all.",
+    security=[{"Bearer": []}],
+    request_parameters=[
+        openapi.Parameter(
+            name="organization_identity",
+            in_=openapi.IN_PATH,
+            type=openapi.TYPE_STRING,
+            description="Organization identity to filter issued credentials",
+        ),
+    ],
+    manual_parameters=[
+        openapi.Parameter(
+            name="page",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER,
+            description="Page number (optional)",
+            required=False,
+        ),
+        openapi.Parameter(
+            name="page_size",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_INTEGER,
+            description="Number of items per page (optional)",
+            required=False,
+        ),
+    ],
+    responses={
+        200: openapi.Response("List of issued credentials", ListGetCredentialsByOrganizationIdentitySerializer),
+        400: "Bad Request",
+        500: "Internal Server Error",
+    },
+)
+@api_view(["GET"])
+def get_credentials_by_organization_identity(request, organization_identity):
+    organization_identity = request.resolver_match.kwargs.get("organization_identity")
+    if not organization_identity:
+        return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identity parameter")
+    return _get_credentials_by_organization_identity(request, organization_identity)
+
+
+def _get_credentials_by_organization_identity(request, organization_identity=None):
+    try:
+        token_data = virifity_token_and_get_payload(request)
+    except Exception as e:
+        log.error(f"Auth error: {e}")
+        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
+
+    # check organization_identity and permissions
+    if organization_identity:
+        token_org_identity = token_data.get("organization_identity")
+        if token_org_identity != organization_identity:
+            # TODO: check if has admin role to get other organization_identity credentials
+            return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "Insufficient permissions")
+    if not organization_identity:
+        organization_identity = token_data.get("organization_identity")
+        if not organization_identity:
+            # TODO: check if has admin role to get all credentials
+            return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identity parameter")
+
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 20)
+    try:
+        page = int(page)
+        page_size = int(page_size)
+    except ValueError:
+        return send_error(status.HTTP_400_BAD_REQUEST, "Invalid pagination parameters")
+
+    try:
+        logging.debug("organization_identity=%s", organization_identity)
+        paginator = Paginator(
+            IssuedCredential.objects.filter(organization_identity=organization_identity).all()
+            if organization_identity
+            else IssuedCredential.objects.all(),
+            page_size,
+        )
+        try:
+            issued_credentials = paginator.page(page)
+        except (PageNotAnInteger, EmptyPage):
+            issued_credentials = paginator.page(1)
+
+        if page > paginator.num_pages:
+            issued_credentials = []
+
+        credentials_list: list[GetCredentialsByOrganizationIdentitySerializer] = []
+        for cred in issued_credentials:
+            credentials_list.append(
+                {
+                    "credential_id": cred.credential_id,
+                    "organization_identity": cred.organization_identity,
+                    "vc_type": cred.vc_type,
+                    "status": cred.status,
+                    "creation_at": cred.creation_at,
+                    "update_at": cred.update_at,
+                }
+            )
+
+        result: ListGetCredentialsByOrganizationIdentitySerializer = {
+            "credentials": credentials_list,
+            "page": page,
+            "num_pages": paginator.num_pages,
+            "page_size": page_size,
+            "total": paginator.count,
+        }
+        return JsonResponse(result, safe=False)
+    except Exception as e:
+        traceback.print_exc()
+        log.error(f"Error fetching credentials by organization_identity: {e}")
         return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error", str(e))
 
 
