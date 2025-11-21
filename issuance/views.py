@@ -421,9 +421,9 @@ def _get_credentials_by_organization_identity(request, organization_identity=Non
     try:
         logging.debug("organization_identity=%s", organization_identity)
         paginator = Paginator(
-            IssuedCredential.objects.filter(organization_identity=organization_identity).all()
+            IssuedCredential.objects.filter(organization_identity=organization_identity).all().order_by("-creation_at")
             if organization_identity
-            else IssuedCredential.objects.all(),
+            else IssuedCredential.objects.all().order_by("-creation_at"),
             page_size,
         )
         try:

@@ -481,11 +481,11 @@ LOGGING = {
     },
     "loggers": {
         # Active for show SQL queries
-        "django.db.backends": {
-            "level": "DEBUG",
-            "handlers": ["console"],
-            "propagate": False,
-        },
+#        "django.db.backends": {
+#            "level": "DEBUG",
+#            "handlers": ["console"],
+#            "propagate": False,
+#        },
         "django": {
             "handlers": ["console"],
             "level": "INFO",
