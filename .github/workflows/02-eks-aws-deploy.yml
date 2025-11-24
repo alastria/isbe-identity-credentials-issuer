@@ -95,6 +95,10 @@ jobs:
           echo "🛑 IDENTFY_CONNECTOR_API_URL is not set in variables"
           exit 1
         fi
+        if [[ -z "${{ vars.IDENTFY_CONNECTOR_API_KEY }}" ]]; then
+          echo "🛑 IDENTFY_CONNECTOR_API_KEY is not set in variables"
+          exit 1
+        fi
         if [[ -z "${{ vars.TMF_API_URL }}" ]]; then
           echo "🛑 TMF_API_URL is not set in variables"
           exit 1
@@ -141,6 +145,7 @@ jobs:
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         IDENTFY_CONNECTOR_API_URL: ${{ vars.IDENTFY_CONNECTOR_API_URL }}
+        IDENTFY_CONNECTOR_API_KEY: ${{ vars.IDENTFY_CONNECTOR_API_KEY }}
         TMF_API_URL: ${{ vars.TMF_API_URL }}
         KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}
         EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
