@@ -243,7 +243,7 @@ def list_identifiers(request):
             "No issued credential found for the given profile, vc_type and subject_id",
         )
     # [{”vc_type”:”LearVC”, “identfiers”: []]
-    return JsonResponse([{"vc_type": issued_credential.vc_type, "identifiers": []}], safe=False)
+    return JsonResponse([{"vc_type": issued_credential.vc_type, "identifiers": ["isbe-representative-vc"]}], safe=False)
 
 
 @swagger_auto_schema(
