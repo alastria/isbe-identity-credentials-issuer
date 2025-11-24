@@ -69,6 +69,8 @@ A continuación se detallan los endpoints principales expuestos por la API, junt
 | POST   | /issuance/identifiers         | Devuelve únicamente los vc_types para los que el subject_id tiene permisos. |
 | POST   | /issuance/notifications       | Recibe noticiaciones del componente "connector" indicando estados de las credenciales. |
 | POST   | /issuance/representative      | Solicitar creción de una credencial de representación para una empresa. |
+| POST   | /issuance/credential          | Recupeperar listado de credenciales de una o varias organizaciones. |
+| POST   | /issuance/credential/revoke   | Revocar una credencial |
 
 ## **5. Desarrollo del Artefacto**
 
