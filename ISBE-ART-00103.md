@@ -6,10 +6,10 @@
 |----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Nombre del artefacto**   | ISBE-ART-00103 — Emisión de credenciales |
 | **Origen**                 | Catálogo de Servicios ISBE, especificación OpenAPI |
-| **Estado**                 | En desarrollo |
+| **Estado**                 | Validado |
 | **Versión del documento**  | 1.0.0 |
-| **Fecha**                  | 2025-11-20 |
-| **Repositorio**            | [https://github.com/alastria/isbe-identity-credentials-issuer](https://github.com/alastria/isbe-identity-credentials-issuer) |
+| **Fecha**                  | 2025-11-24 |
+| **Repositorio**            | [https://github.com/alastria/isbe-identity-credentials-issuer](https://github.com/alastria/isbe-identity-credentials-issuer/tree/main) |
 | **Commit**                 | 89d882e89296724de26e1aa12bcf331cfbc8bae2 |
 
 ## 2. Propósito del Artefacto
@@ -27,7 +27,7 @@ Abarca la implementación y gestión de un servicio de emisión de credenciales 
     - Panel de administración web para la gestión operativa, configuración, usuarios y monitoreo del sistema.
 - **Fases cubiertas:**
   - ✅ **Definición:** especificación de la API y el diseño del panel de administración.
-  - ✅ **Desarrollo:** emplementación de los endpoints y lógica de negocio.
+  - ✅ **Desarrollo:** implementación de los endpoints y lógica de negocio.
 - **Entregables:** 
     - Código fuente de la API y del panel de administración.
     - Documentación de la api en formato Swagger/OpenAPI.
@@ -84,16 +84,15 @@ El desarrollo del artefacto incluye los siguientes componentes principales:
 
 ### **5.2. Lista de elementos clave producidos**
 
-| Nombre                   | Descripción                                              | Enlace                                    |
-|--------------------------|----------------------------------------------------------|-------------------------------------------|
-| Código fuente            | Implementación de la API y panel de administración       | [Repositorio GitHub](https://github.com/alastria/isbe-identity-credentials-issuer) |
-| Documentación API        | Especificación OpenAPI/Swagger de los endpoints          | `GET al endpoint /swagger`       |
-| Modelos Django | Disponible en issuance/models.py | |
-| Implementación de los endpoints pricipales | Disponible en issuance/views.py | |
-| Doker    | Dockerfile, docker-compose.yml  |  |
-| Despliegue Kubernetes |  Carpeta ".helm"    | |
-| Git Workflow             | Carpeta ".github/workflows" Construción imagen, push ECR y despliegue  | | 
-
+| Nombre                                   | Descripción                                                                                                                                         | Enlace                                                                                  |
+|------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| **Código fuente**                        | Implementación de la API y panel de administración	                                          | [Repositorio GitHub](https://github.com/alastria/isbe-identity-credentials-issuer)                                                                     |
+| **Documentación API**                    |	Especificación OpenAPI/Swagger de los endpoints | GET al endpoint `/swagger`           |
+| **Modelos Django**                       | Modelos de Django.                                               | `issuance/models.py`                                                                    |
+| **Implementación de los endpoints principales** | Conjunto de vistas/controladores que gestionan las peticiones HTTP y orquestan la lógica de negocio de la API.                                    | `issuance/views.py`                                                                     |
+| **Docker**                               | Ficheros de configuración para la construcción y ejecución de los servicios en contenedores, facilitando entornos reproducibles.                   | `Dockerfile`, `docker-compose.yml`                                                     |
+| **Despliegue Kubernetes**               | Recursos y plantillas Helm para el despliegue, configuración y gestión de la aplicación en un clúster de Kubernetes.                               | Carpeta `.helm`                                                                         |
+| **Git Workflow**                         | Flujos de CI/CD que automatizan la construcción de la imagen, el push al registro (ECR) y el despliegue en los entornos definidos.                | Carpeta `.github/workflows`             |
 
 ### **5.3. Frameworks, librerías o tecnologías acordadas**
 
