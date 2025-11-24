@@ -10,7 +10,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 
 from common.auth import virifity_token_and_get_payload
-from common.identfy_connector import get_qr, identify_get_credential, identify_register_preauth_code
+from common.identfy_connector import (
+    get_qr,
+    identify_get_credential,
+    identify_register_preauth_code,
+    indentfy_revoke_credential,
+)
 from common.tmf_api import tmf_get_individual, tmf_get_organization
 from issuance.emails import send_email_user_enrollment
 from issuance.enum import IssuedCredentialStatus
@@ -391,6 +396,66 @@ def get_credentials_by_organization_identity(request, organization_identity):
     return _get_credentials_by_organization_identity(request, organization_identity)
 
 
+@swagger_auto_schema(
+    method="post",
+    operation_description="Revoke an issued credential by its ID. Requires authentication (token) and permissions to access the specified organization_identity or admin role for all.",
+    security=[{"Bearer": []}],
+    responses={
+        200: openapi.Response(
+            description="Credential revoked successfully",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={"message": openapi.Schema(type=openapi.TYPE_STRING)},
+            ),
+        ),
+        400: "Bad Request",
+        401: "Unauthorized",
+        403: "Forbidden",
+        404: "Not Found",
+        500: "Internal Server Error",
+    },
+    request_body=None,
+)
+@api_view(["POST"])
+def revoke_credential(request, credential_id):
+    try:
+        token_data = virifity_token_and_get_payload(request)
+    except Exception as e:
+        log.error(f"Auth error: {e}")
+        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
+
+    try:
+        issued_credential = IssuedCredential.objects.filter(credential_id=credential_id).first()
+        if not issued_credential:
+            return send_error(status.HTTP_404_NOT_FOUND, "Credential not found")
+
+        # check permissions
+        if _check_permissions(token_data, issued_credential.organization_identity) is False:
+            return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
+
+        result = indentfy_revoke_credential(credential_id)
+        if result.get("status") != "revoked":
+            return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to revoke credential")
+        issued_credential.status = IssuedCredentialStatus.REVOKED.value
+        issued_credential.update_at = datetime.now()
+        issued_credential.save()
+        return JsonResponse({"message": "Credential revoked successfully"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        traceback.print_exc()
+        log.error(f"Error revoking credential: {e}")
+        return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error", str(e))
+
+
+def _check_permissions(token_data, organization_identity):
+    # check organization_identity and permissions
+    if organization_identity:
+        token_org_identity = token_data.get("organization_identity")
+        if token_org_identity != organization_identity:
+            # TODO: check if has admin role to get other organization_identity credentials
+            return False
+    return True
+
+
 def _get_credentials_by_organization_identity(request, organization_identity=None):
     try:
         token_data = virifity_token_and_get_payload(request)
@@ -398,12 +463,10 @@ def _get_credentials_by_organization_identity(request, organization_identity=Non
         log.error(f"Auth error: {e}")
         return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
 
-    # check organization_identity and permissions
-    if organization_identity:
-        token_org_identity = token_data.get("organization_identity")
-        if token_org_identity != organization_identity:
-            # TODO: check if has admin role to get other organization_identity credentials
-            return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "Insufficient permissions")
+    # check permissions
+    if _check_permissions(token_data, organization_identity) is False:
+        return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
+
     if not organization_identity:
         organization_identity = token_data.get("organization_identity")
         if not organization_identity:

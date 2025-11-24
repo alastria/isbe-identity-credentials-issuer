@@ -69,3 +69,18 @@ def identify_get_credential(credential_id: str) -> dict:
             },
         },
     }
+
+
+def indentfy_revoke_credential(credential_id: str) -> dict:
+    headers = {
+        "accept": "application/json",
+    }
+    # resp = requests.post(f"{_get_url_base()}/protected/credentials/{credential_id}/revoke", headers=headers)
+    # resp.raise_for_status()
+    # return resp.json()
+    print("TODO. Quitar salto indentfy_revoke_credential")
+    return {
+        "credential_id": credential_id,
+        "status": "revoked",
+        "revocationDate": datetime.now().isoformat(),
+    }
