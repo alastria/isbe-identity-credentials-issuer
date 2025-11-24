@@ -481,11 +481,11 @@ LOGGING = {
     },
     "loggers": {
         # Active for show SQL queries
-#        "django.db.backends": {
-#            "level": "DEBUG",
-#            "handlers": ["console"],
-#            "propagate": False,
-#        },
+        #        "django.db.backends": {
+        #            "level": "DEBUG",
+        #            "handlers": ["console"],
+        #            "propagate": False,
+        #        },
         "django": {
             "handlers": ["console"],
             "level": "INFO",
@@ -535,9 +535,9 @@ SWAGGER_SETTINGS = {
 
 
 # TODO pendiente de ver si será la misma url base de IDENTFY_CONNECTOR_API_URL
-IDENTFY_QR_ISSUANCE_URL = os.getenv("IDENTFY_QR_ISSUANCE_URL")
 KEYCLOAK_JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL")
 IDENTFY_CONNECTOR_API_URL = os.getenv("IDENTFY_CONNECTOR_API_URL", "")
+IDENTFY_CONNECTOR_API_KEY = os.getenv("IDENTFY_CONNECTOR_API_KEY", "")
 TMF_API_URL = os.getenv("TMF_API_URL", "")
 
 PROMETHEUS_METRIC_NAMESPACE = os.environ.get("PROMETHEUS_METRIC_NAMESPACE", "")

@@ -1,6 +1,6 @@
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import HttpResponse, JsonResponse
@@ -76,13 +76,17 @@ def representative_issuance(request):
         if not profile:
             raise Exception("PROFILE not configured")
         subject_id = f"{token_data.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        preauth_register = identify_register_preauth_code(profile.value, vc_type.value, subject_id)
-        print(preauth_register)
+        preauth_result = identify_register_preauth_code(profile.value, vc_type.value, subject_id)
+        # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
+        log.info(f"Preauth code registered: {preauth_result}")
+        date_expires = datetime.now()
+        date_expires = date_expires.replace(microsecond=0)
+        date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
         IssuedCredential.objects.create(
             vc_type=vc_type.value,
             subject_id=subject_id,
-            preauth_code=preauth_register["preauth_code"],
-            preauth_code_expires_in=preauth_register["expires_in"],
+            preauth_code=preauth_result["preauth_code"],
+            preauth_code_expires_in=date_expires,
             token_data=token_data,
             organization_identity=token_data.get("organization_identity"),
             status=IssuedCredentialStatus.PENDING.value,
@@ -139,13 +143,17 @@ def employee_issuance(request):
         if not get_profile():
             raise Exception("PROFILE not configured")
         subject_id = f"{token_data.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        preauth_register = identify_register_preauth_code(get_profile().value, vc_type.value, subject_id)
-        print(preauth_register)
+        preauth_result = identify_register_preauth_code(get_profile().value, vc_type.value, subject_id)
+        # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
+        log.info(f"Preauth code registered: {preauth_result}")
+        date_expires = datetime.now()
+        date_expires = date_expires.replace(microsecond=0)
+        date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
         IssuedCredential.objects.create(
             vc_type=vc_type.value,
             subject_id=subject_id,
-            preauth_code=preauth_register["preauth_code"],
-            preauth_code_expires_in=preauth_register["expires_in"],
+            preauth_code=preauth_result["preauth_code"],
+            preauth_code_expires_in=date_expires,
             token_data=token_data,
             organization_identity=token_data.get("organization_identity"),
             status=IssuedCredentialStatus.PENDING.value,
@@ -159,7 +167,7 @@ def employee_issuance(request):
 
 
 @swagger_auto_schema(
-    method="post",
+    method="get",
     operation_description="List available identifier types for issuance",
     responses={
         200: openapi.Response(
@@ -180,13 +188,49 @@ def employee_issuance(request):
         401: "Unauthorized",
         404: "Not Found",
     },
-    request_body=ListIdentifiersSerializer,
+    manual_parameters=[
+        openapi.Parameter(
+            name="app",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Application name",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="profile",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Profile name",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="instance",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Instance name",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="vc_type",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="VC type",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="subject_id",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Subject ID",
+            required=True,
+        ),
+    ],
 )
-@api_view(["POST"])
+@api_view(["GET"])
 def list_identifiers(request):
-    serializer = ListIdentifiersSerializer(data=request.data)
+    serializer = ListIdentifiersSerializer(data=request.GET)
     if not serializer.is_valid():
-        return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data"), str(serializer.errors)
+        return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
     data = serializer.validated_data
     error = validate_request(data["app"], data["profile"], data["instance"])
     if error:
@@ -203,7 +247,7 @@ def list_identifiers(request):
 
 
 @swagger_auto_schema(
-    method="post",
+    method="get",
     operation_description="Get claims data for a given VC",
     responses={
         200: openapi.Response(
@@ -230,11 +274,47 @@ def list_identifiers(request):
         401: "Unauthorized",
         404: "Not Found",
     },
-    request_body=GetClaimsSerializer,
+    manual_parameters=[
+        openapi.Parameter(
+            name="app",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Application name",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="profile",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Profile name",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="instance",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Instance name",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="vc_type",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="VC type",
+            required=True,
+        ),
+        openapi.Parameter(
+            name="subject_id",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Subject ID",
+            required=True,
+        ),
+    ],
 )
-@api_view(["POST"])
+@api_view(["GET"])
 def get_claims_view(request):
-    serializer = GetClaimsSerializer(data=request.data)
+    serializer = GetClaimsSerializer(data=request.GET)
     if not serializer.is_valid():
         return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
     data = serializer.validated_data

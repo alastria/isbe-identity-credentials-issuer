@@ -28,8 +28,9 @@ def validate_request(app: str, profile: str, instance: str) -> str | None:
     config_app = list.filter(key=CONFIG_KEY_APP).first()
     if not config_app or config_app.value != app:
         return "App not found"
-    instance = list.filter(key=CONFIG_KEY_INSTANCE).first()
-    if not instance or instance.value != instance:
+    config_instance = list.filter(key=CONFIG_KEY_INSTANCE).first()
+    print("instance:", instance)
+    if not config_instance or config_instance.value != instance:
         return "Instance not found"
     return None
 
@@ -51,6 +52,8 @@ def get_url_base_for_connector():
     instance = list.filter(key=CONFIG_KEY_INSTANCE).first()
     if not instance:
         raise Exception("INSTANCE not configured")
+    if api_version.value == "-":
+        return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{profile.value}/{instance.value}"
     return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{api_version.value}/{profile.value}/{instance.value}"
 
 

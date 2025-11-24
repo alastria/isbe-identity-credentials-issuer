@@ -1,6 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import requests
+
+from issuance.helper import get_url_base_for_connector
+from project import settings
 
 
 # TODO: ¿cambiar llamaa a /oid/credential-offer?
@@ -8,12 +11,12 @@ def get_qr():
     headers = {
         "accept": "application/json",
     }
-    # TODO: request añadir parametros cuando este el conector final
-    # resp = requests.get(IDENTFY_CONNECTOR_API_URL + "/credential-offer/qr", headers=headers, timeout=8)
-    # resp = requests.get(get_url_base_for_connector() + "/credential-offer/qr", headers=headers, timeout=8)
-    resp = requests.get(
-        "https://identfy.izer.tech/95b3d953-6ac2-40c8-8707-b5f58dbb2279/credential-offer/qr", headers=headers, timeout=8
-    )
+    resp = requests.get(get_url_base_for_connector() + "/credential-offer?response_mode=qr", headers=headers, timeout=8)
+    # resp = requests.get(
+    #    "https://identfy.izer.tech/95b3d953-6ac2-40c8-8707-b5f58dbb2279/credential-offer/qr", headers=headers, timeout=8
+    # )
+    if resp.status_code not in (200, 201):
+        raise Exception(f"Error getting QR from Identfy Connector: {resp.status_code} - {resp.text}")
     resp.raise_for_status()
     ctype = resp.headers.get("Content-Type", "image/png")
     return resp.content, ctype
@@ -22,6 +25,7 @@ def get_qr():
 def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) -> dict:
     headers = {
         "accept": "application/json",
+        "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
     paylod = {
         "profile": profile,
@@ -30,15 +34,16 @@ def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) 
         # "expires_in?": number,
         # "tx_code?": {input_mode, length, description},
     }
-    # resp = requests.post(f"{_get_url_base()}/protected/oid/preauth-code", headers=headers, json=paylod)
-    print("TODO. Quitar salto identify_register_preauth_code")
-    # resp.raise_for_status()
-    # return resp.json()
-    return {
-        "preauth_code": "abcd-1234-efgh-5678",
-        "expires_in": datetime.now() + timedelta(days=30),
-        "tx_code?": "algo_tx_code",
-    }
+    resp = requests.post(f"{get_url_base_for_connector()}/preauth-code", headers=headers, json=paylod)
+    if resp.status_code not in (200, 201):
+        raise Exception(f"Error getting QR from Identfy Connector: {resp.status_code} - {resp.text}")
+    return resp.json()
+    # print("TODO. Quitar salto identify_register_preauth_code")
+    # return {
+    #    "preauth_code": "abcd-1234-efgh-5678",
+    #    "expires_in": datetime.now() + timedelta(days=30),
+    #    "tx_code?": "algo_tx_code",
+    # }
 
 
 def identify_get_credential(credential_id: str) -> dict:
