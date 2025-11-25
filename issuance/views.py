@@ -243,7 +243,21 @@ def list_identifiers(request):
             "No issued credential found for the given profile, vc_type and subject_id",
         )
     # [{”vc_type”:”LearVC”, “identfiers”: []]
-    return JsonResponse([{"vc_type": issued_credential.vc_type, "identifiers": ["isbe-representative-vc"]}], safe=False)
+
+    return JsonResponse(
+        [{"vc_type": issued_credential.vc_type, "identifiers": [_vc_type_to_identier(issued_credential.vc_type)]}],
+        safe=False,
+    )
+
+
+def _vc_type_to_identier(vc_type: str) -> str:
+    return f"isbe-{vc_type.lower()}"
+
+
+def _isbe_identier_to_vc_type(identifier: str) -> str:
+    if identifier.startswith("isbe-"):
+        return identifier[5:]
+    return identifier
 
 
 @swagger_auto_schema(
@@ -322,7 +336,7 @@ def get_claims_view(request):
     if error:
         return send_error(status.HTTP_404_NOT_FOUND, "Not found", error)
     issued_credential = IssuedCredential.objects.filter(
-        vc_type=data["vc_identifier"], subject_id=data["subject_id"]
+        vc_type__iexact=_isbe_identier_to_vc_type(data["vc_identifier"]), subject_id=data["subject_id"]
     ).first()
     if not issued_credential:
         return send_error(
