@@ -249,15 +249,15 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 
 JAZZMIN_SETTINGS: Dict[str, Any] = {
-    "site_title": "Identfy Admin",
-    "site_header": "Identfy",
-    "site_brand": "Identfy",
+    "site_title": "Credential Issuer Admin",
+    "site_header": "Credential Issuer",
+    "site_brand": "Credential Issuer",
     "login_logo": "images/logo/logo.png",
     "login_logo_dark": "images/logo/logo.png",
     "site_logo_classes": "img-circle",
     "site_icon": "images/icon/logo.ico",
-    "welcome_sign": _("Welcome to the Identfy Admin Site"),
-    "copyright": _("Izertis"),
+    "welcome_sign": _("Welcome to the ISBE Credential Issuer Admin Site"),
+    "copyright": _("Alastria"),
     "search_model": ["auth.User", "auth.Group"],
     "user_avatar": None,
     ############
@@ -332,7 +332,7 @@ JAZZMIN_SETTINGS: Dict[str, Any] = {
     #############
     # UI Tweaks #
     #############
-    "custom_css": "css/izertis.css",
+    "custom_css": "css/issuer.css",
     "custom_js": None,
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,

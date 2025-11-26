@@ -90,7 +90,7 @@ body > div.login-box > div.card > div > form > div:nth-child(4) > div {
 }
 
 .jazzmin-login-page {
-  background-image: url("../images/identfy_background.png");
+  background-image: url("../images/background.png");
   /* background-color: #363D58; */
   background-repeat: no-repeat;
   background-size: cover;
