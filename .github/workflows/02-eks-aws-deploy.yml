@@ -63,6 +63,10 @@ jobs:
           echo "🛑 EKS_NAMESPACE is not set in variables"
           exit 1
         fi
+        if [[ -z "${{ vars.ARN_CERT }}" ]]; then
+          echo "🛑 ARN_CERT is not set in variables"
+          exit 1
+        fi
         if [[ -z "${{ vars.ALLOWED_HOSTS }}" ]]; then
           echo "🛑 ALLOWED_HOSTS is not set in variables"
           exit 1
@@ -130,6 +134,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: ${{ vars.AWS_REGION }}
         HOST_NAME: ${{ vars.HOST_NAME }}
+        ARN_CERT: ${{ vars.ARN_CERT }}
         EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
         APP_NAME: ${{ vars.APP_NAME }}
         ALLOWED_HOSTS: ${{ vars.ALLOWED_HOSTS }}
