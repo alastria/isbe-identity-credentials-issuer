@@ -17,7 +17,7 @@
   background-color: #EB5B5B;
 }
 #jazzy-logo > img {
-  content: url("../images/logo/identfy_white.svg");
+  content: url("../images/logo/logo.png");
   border-radius: 0;
   width: 100%;
   padding-right: 60px;
@@ -117,7 +117,7 @@ body > div.login-box > div.card > div > p.text-center::after {
 }
 
 body > div.login-box > div.login-logo > h1 > picture > img {
-  content: url("../images/logo/identfy_white.svg");
+  content: url("../images/logo/logo.png");
   width: 300px;
 }
 .card {
