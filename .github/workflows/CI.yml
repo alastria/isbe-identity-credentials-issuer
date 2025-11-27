@@ -5,7 +5,7 @@ on:
       - '**'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   insert-header:
@@ -24,6 +24,9 @@ jobs:
         FILE_EXTENSIONS=("*.py" "*.sh")
         for EXT in "${FILE_EXTENSIONS[@]}"; do
           find . -type f -name "$EXT" ! -path "./.github/*" | while read -r FILE; do
+            if [[ "$(basename "$FILE")" == __* ]]; then
+              continue
+            fi
             if ! grep -q "Copyright (c) 2024 Your Company" "$FILE"; then
               echo -e "$HEADER\n$(cat "$FILE")" > "$FILE"
               echo "Inserted header into $FILE"
