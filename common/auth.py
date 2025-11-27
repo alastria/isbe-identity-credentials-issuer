@@ -62,21 +62,17 @@ def virifity_token_and_get_payload(request: HttpRequest) -> Tuple[Optional[dict[
             "prueba1": {"prueba1": 1},
             "prueba2": '{"prueba2":1}',
             "email_verified": "true",
-            "name": "David Lutzardo",
-            "preferred_username": "jdavidlb27@gmail.com",
-            "power": [
-                {"type": "domain", "domain": "DOME", "function": "Onboarding", "action": ["execute"]},
-                {"type": "domain", "domain": "ISBE", "function": "Onboarding", "action": ["execute"]},
-            ],
-            "org_name": "GOOD AIR, S.L.",
-            "org_legal_id": "NTRIES-B12345678",
-            "org_legal_id_no": "VATFR-B12345678",
-            "org_legal_id3": "VATES-11111111K",
-            "org_legal_id2": "VATES-A66721499:IDCES-99999999R",
-            "organization_identity": "urn:ngsi-ld:organization:VATES-11111111K",
             "given_name": "David",
             "family_name": "Lutzardo",
+            "user": "David Lutzardo",
+            "user_identifier": "12345678L",
             "email": "jdavidlb27@gmail.com",
+            "power": [
+                {"type": "domain", "domain": "DOME", "function": "Onboarding", "action": ["execute"]},
+                {"type": "organization", "domain": "ISBE", "function": "Onboarding", "action": ["execute"]},
+            ],
+            "organization": "GOOD AIR, S.L.",
+            "organization_identifier": "NTRIES-B12345678",
         }
     except Exception as e:
         print(e)

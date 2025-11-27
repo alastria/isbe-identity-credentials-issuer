@@ -33,15 +33,15 @@ class IssuedCredentialAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "vc_type",
-        "organization_identity",
+        "organization_identifier",
         "subject_id",
         "status",
         "credential_id",
         "creation_at",
         "update_at",
     )
-    search_fields = ("vc_type", "subject_id", "organization_identity", "status")
-    list_filter = ("organization_identity", "status", "creation_at")
+    search_fields = ("vc_type", "subject_id", "organization_identifier", "status")
+    list_filter = ("organization_identifier", "status", "creation_at")
 
     formfield_overrides = {
         models.JSONField: {"widget": JSONEditorWidget},

@@ -39,6 +39,8 @@ from issuance.models import CONFIG_KEY_VC_TYPES, Configuration, IssuedCredential
 from issuance.serializers import (
     GetClaimsSerializer,
     GetCredentialsByOrganizationIdentitySerializer,
+    IssueEmployeeCredentialSerializer,
+    IssueRepresentativeCredentialSerializer,
     ListGetCredentialsByOrganizationIdentitySerializer,
     ListIdentifiersSerializer,
     NotificationSerializer,
@@ -60,6 +62,7 @@ log = logging.getLogger(__name__)
         400: "Bad Request",
         401: "Unauthorized",
     },
+    request_body=IssueRepresentativeCredentialSerializer,
 )
 @api_view(["POST"])
 def representative_issuance(request):
@@ -72,16 +75,13 @@ def representative_issuance(request):
     try:
         missing = check_and_get_errors_access_token(token_data)
         if missing:
-            return send_error(status.HTTP_400_BAD_REQUEST, "Missing required data", ", ".join(missing))
+            return send_error(
+                status.HTTP_400_BAD_REQUEST, "Missing required data or invalid powers", ", ".join(missing)
+            )
 
-        # TODO: validate fields
-        user_data = {
-            "sub": token_data.get("sub"),
-            "org_legal_id": token_data.get("org_legal_id"),
-            "org_name": token_data.get("org_name"),
-            "roles": (token_data.get("realm_access") or {}).get("roles", []),
-        }
-        log.debug(user_data)
+        serializer = IssueRepresentativeCredentialSerializer(data=request.data)
+        if not serializer.is_valid():
+            return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
 
         content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
@@ -103,7 +103,8 @@ def representative_issuance(request):
             preauth_code=preauth_result["preauth_code"],
             preauth_code_expires_in=date_expires,
             token_data=token_data,
-            organization_identity=token_data.get("organization_identity"),
+            body_data=serializer.validated_data,
+            organization_identifier=token_data.get("organization_identifier"),
             status=IssuedCredentialStatus.PENDING.value,
         )
         return HttpResponse(content, content_type=ctype)
@@ -127,6 +128,7 @@ def representative_issuance(request):
         400: "Bad Request",
         401: "Unauthorized",
     },
+    request_body=IssueEmployeeCredentialSerializer,
 )
 @api_view(["POST"])
 def employee_issuance(request):
@@ -139,16 +141,14 @@ def employee_issuance(request):
     try:
         missing = check_and_get_errors_access_token(token_data)
         if missing:
-            return send_error(status.HTTP_400_BAD_REQUEST, "Missing required data", ", ".join(missing))
-        # TODO: validate fields
-        user_data = {
-            "sub": token_data.get("sub"),
-            "org_legal_id": token_data.get("org_legal_id"),
-            "org_name": token_data.get("org_name"),
-            "roles": (token_data.get("realm_access") or {}).get("roles", []),
-        }
-        log.debug(user_data)
+            return send_error(
+                status.HTTP_400_BAD_REQUEST, "Missing required data or invalid powers", ", ".join(missing)
+            )
 
+        # IssueEmployeeCredentialSerializer
+        serializer = IssueEmployeeCredentialSerializer(data=request.data)
+        if not serializer.is_valid():
+            return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
         # TODO validade DNI?
 
         qr_content, ctype = get_qr()
@@ -170,7 +170,8 @@ def employee_issuance(request):
             preauth_code=preauth_result["preauth_code"],
             preauth_code_expires_in=date_expires,
             token_data=token_data,
-            organization_identity=token_data.get("organization_identity"),
+            body_data=serializer.validated_data,
+            organization_identifier=token_data.get("organization_identifier"),
             status=IssuedCredentialStatus.PENDING.value,
         )
 
@@ -434,7 +435,7 @@ def handle_notifications(request):
 
 @swagger_auto_schema(
     method="get",
-    operation_description="Get issued credentials. Requires authentication (token) and permissions to access the specified organization_identity or admin role for all.",
+    operation_description="Get issued credentials. Requires authentication (token) and permissions to access the specified organization_identifier or admin role for all.",
     security=[{"Bearer": []}],
     responses={
         200: openapi.Response("List of issued credentials", ListGetCredentialsByOrganizationIdentitySerializer),
@@ -460,16 +461,16 @@ def handle_notifications(request):
 )
 @api_view(["GET"])
 def get_credentials(request):
-    return _get_credentials_by_organization_identity(request)
+    return _get_credentials_by_organization_identifier(request)
 
 
 @swagger_auto_schema(
     method="get",
-    operation_description="Get issued credentials by organization_identity. Requires authentication (token) and permissions to access the specified organization_identity or admin role for all.",
+    operation_description="Get issued credentials by organization_identifier. Requires authentication (token) and permissions to access the specified organization_identifier or admin role for all.",
     security=[{"Bearer": []}],
     request_parameters=[
         openapi.Parameter(
-            name="organization_identity",
+            name="organization_identifier",
             in_=openapi.IN_PATH,
             type=openapi.TYPE_STRING,
             description="Organization identity to filter issued credentials",
@@ -498,16 +499,16 @@ def get_credentials(request):
     },
 )
 @api_view(["GET"])
-def get_credentials_by_organization_identity(request, organization_identity):
-    organization_identity = request.resolver_match.kwargs.get("organization_identity")
-    if not organization_identity:
-        return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identity parameter")
-    return _get_credentials_by_organization_identity(request, organization_identity)
+def get_credentials_by_organization_identifier(request, organization_identifier):
+    organization_identifier = request.resolver_match.kwargs.get("organization_identifier")
+    if not organization_identifier:
+        return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identifier parameter")
+    return _get_credentials_by_organization_identifier(request, organization_identifier)
 
 
 @swagger_auto_schema(
     method="post",
-    operation_description="Revoke an issued credential by its ID. Requires authentication (token) and permissions to access the specified organization_identity or admin role for all.",
+    operation_description="Revoke an issued credential by its ID. Requires authentication (token) and permissions to access the specified organization_identifier or admin role for all.",
     security=[{"Bearer": []}],
     responses={
         200: openapi.Response(
@@ -539,7 +540,7 @@ def revoke_credential(request, credential_id):
             return send_error(status.HTTP_404_NOT_FOUND, "Credential not found")
 
         # check permissions
-        if _check_permissions(token_data, issued_credential.organization_identity) is False:
+        if _check_permissions(token_data, issued_credential.organization_identifier) is False:
             return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
 
         result = indentfy_revoke_credential(credential_id)
@@ -555,17 +556,17 @@ def revoke_credential(request, credential_id):
         return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error", str(e))
 
 
-def _check_permissions(token_data, organization_identity):
-    # check organization_identity and permissions
-    if organization_identity:
-        token_org_identity = token_data.get("organization_identity")
-        if token_org_identity != organization_identity:
-            # TODO: check if has admin role to get other organization_identity credentials
+def _check_permissions(token_data, organization_identifier):
+    # check organization_identifier and permissions
+    if organization_identifier:
+        token_org_identity = token_data.get("organization_identifier")
+        if token_org_identity != organization_identifier:
+            # TODO: check if has admin role to get other organization_identifier credentials
             return False
     return True
 
 
-def _get_credentials_by_organization_identity(request, organization_identity=None):
+def _get_credentials_by_organization_identifier(request, organization_identifier=None):
     try:
         token_data = virifity_token_and_get_payload(request)
     except Exception as e:
@@ -573,14 +574,14 @@ def _get_credentials_by_organization_identity(request, organization_identity=Non
         return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
 
     # check permissions
-    if _check_permissions(token_data, organization_identity) is False:
+    if _check_permissions(token_data, organization_identifier) is False:
         return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
 
-    if not organization_identity:
-        organization_identity = token_data.get("organization_identity")
-        if not organization_identity:
+    if not organization_identifier:
+        organization_identifier = token_data.get("organization_identifier")
+        if not organization_identifier:
             # TODO: check if has admin role to get all credentials
-            return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identity parameter")
+            return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identifier parameter")
 
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 20)
@@ -591,10 +592,12 @@ def _get_credentials_by_organization_identity(request, organization_identity=Non
         return send_error(status.HTTP_400_BAD_REQUEST, "Invalid pagination parameters")
 
     try:
-        logging.debug("organization_identity=%s", organization_identity)
+        logging.debug("organization_identifier=%s", organization_identifier)
         paginator = Paginator(
-            IssuedCredential.objects.filter(organization_identity=organization_identity).all().order_by("-creation_at")
-            if organization_identity
+            IssuedCredential.objects.filter(organization_identifier=organization_identifier)
+            .all()
+            .order_by("-creation_at")
+            if organization_identifier
             else IssuedCredential.objects.all().order_by("-creation_at"),
             page_size,
         )
@@ -611,7 +614,7 @@ def _get_credentials_by_organization_identity(request, organization_identity=Non
             credentials_list.append(
                 {
                     "credential_id": cred.credential_id,
-                    "organization_identity": cred.organization_identity,
+                    "organization_identifier": cred.organization_identifier,
                     "vc_type": cred.vc_type,
                     "status": cred.status,
                     "creation_at": cred.creation_at,
@@ -629,7 +632,7 @@ def _get_credentials_by_organization_identity(request, organization_identity=Non
         return JsonResponse(result, safe=False)
     except Exception as e:
         traceback.print_exc()
-        log.error(f"Error fetching credentials by organization_identity: {e}")
+        log.error(f"Error fetching credentials by organization_identifier: {e}")
         return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error", str(e))
 
 

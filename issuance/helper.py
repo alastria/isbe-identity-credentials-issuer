@@ -22,6 +22,7 @@ from issuance.models import (
     CONFIG_KEY_PROFILE,
     Configuration,
 )
+from project import settings
 from project.settings import IDENTFY_CONNECTOR_API_URL
 
 log = logging.getLogger(__name__)
@@ -76,17 +77,41 @@ def check_and_get_errors_access_token(claims: dict) -> bool:
     missing = []
     # TODO: revisar todos los claims necesarios, añadir los que falten
     # Algunos pueden cambiar de nombre o no ser obligatorios
-    if "org_legal_id" not in claims:
-        missing.append("org_legal_id")
-    if "org_name" not in claims:
-        missing.append("org_name")
-    if "email" not in claims:
-        missing.append("email")
-    if "organization_identity" not in claims:
-        missing.append("organization_identity")
-    roles_present = (
-        "realm_access" in claims and isinstance(claims["realm_access"], dict) and "roles" in claims["realm_access"]
-    )
-    if not roles_present:
-        missing.append("realm_access.roles")
+    requeries = ["power", "user", "user_identifier", "organization_identifier", "organization", "email"]
+    for req in requeries:
+        if req not in claims:
+            missing.append(req)
+    if len(missing) > 0:
+        return missing
+
+    # "power": [
+    #            {"type": "domain", "domain": "DOME", "function": "Onboarding", "action": ["execute"]},
+    #            {"type": "domain", "domain": "ISBE", "function": "Credentials", "action": ["execute"]},
+    #        ],
+    # Check power in claims
+    if "power" in claims and isinstance(claims["power"], list):
+        powers = claims["power"]
+        has_power = False
+        for power in powers:
+            if not isinstance(power, dict):
+                continue
+            for power_required in settings.POWER_REQUIRED:
+                if not all(
+                    key in power and (power_required[key] == ["*"] or power[key] in power_required[key])
+                    for key in ["type", "domain", "function"]
+                ):
+                    continue
+                if "action" not in power or not isinstance(power["action"], list):
+                    continue
+                if not all(action in power["action"] for action in power_required["action"]):
+                    continue
+                has_power = True
+                break
+            if has_power:
+                break
+        if not has_power:
+            missing.append("thre is no required power for this operation")
+    else:
+        missing.append("power is missing or invalid")
+
     return missing

@@ -16,6 +16,18 @@
 from rest_framework import serializers
 
 
+class IssueEmployeeCredentialSerializer(serializers.Serializer):
+    power = serializers.ListField(child=serializers.DictField(), required=True)
+
+
+class IssueRepresentativeCredentialSerializer(serializers.Serializer):
+    power = serializers.ListField(child=serializers.DictField(), required=True)
+    employeId = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    firstName = serializers.CharField(required=True)
+    lastname = serializers.CharField(required=True)
+
+
 class ListIdentifiersSerializer(serializers.Serializer):
     app = serializers.CharField(required=True)
     instance = serializers.CharField(required=True)
@@ -44,7 +56,7 @@ class NotificationSerializer(serializers.Serializer):
 
 class GetCredentialsByOrganizationIdentitySerializer(serializers.Serializer):
     credential_id = serializers.CharField(required=False, allow_blank=True)
-    organization_identity = serializers.CharField(required=True)
+    organization_identifier = serializers.CharField(required=True)
     vc_type = serializers.CharField(required=False, allow_blank=True)
     status = serializers.CharField(required=False, allow_blank=True)
     creation_at = serializers.DateTimeField(required=False)

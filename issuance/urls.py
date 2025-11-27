@@ -26,9 +26,9 @@ urlpatterns = [
     path("notifications", views.handle_notifications, name="issuance-handle-notifications"),
     path("credential", views.get_credentials, name="get-credentials"),
     path(
-        "credential/<str:organization_identity>",
-        views.get_credentials_by_organization_identity,
-        name="get-credentials-by-organization_identity",
+        "credential/<str:organization_identifier>",
+        views.get_credentials_by_organization_identifier,
+        name="get-credentials-by-organization_identifier",
     ),
     path("credential/revoke/<str:credential_id>", views.revoke_credential, name="revoke-credential"),
 ]

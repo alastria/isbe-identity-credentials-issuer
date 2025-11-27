@@ -557,6 +557,9 @@ TMF_API_URL = os.getenv("TMF_API_URL", "")
 
 PROMETHEUS_METRIC_NAMESPACE = os.environ.get("PROMETHEUS_METRIC_NAMESPACE", "")
 
+POWER_REQUIRED = [
+    {"type": ["organization"], "domain": ["ISBE"], "function": ["Onboarding"], "action": ["execute"]},
+]
 
 try:
     from .settings_local import *

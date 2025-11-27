@@ -37,13 +37,14 @@ class Configuration(models.Model):
 class IssuedCredential(models.Model):
     vc_type = models.CharField(_("VC Tpre"), max_length=200)
     subject_id = models.CharField(_("Subject ID"), max_length=200)
-    organization_identity = models.CharField(_("Organization Identity"), max_length=200)
+    organization_identifier = models.CharField(_("Organization Identifier"), max_length=200)
     preauth_code = models.CharField(_("Preauth code"), max_length=200)
     preauth_code_expires_in = models.DateTimeField(_("Preauth code expiry time"))
     status = models.CharField(_("Status"), max_length=50)  # e.g., pending, active, revoked
     creation_at = models.DateTimeField(_("Creation time"), auto_now_add=True)
     update_at = models.DateTimeField(_("Update time"), blank=True, null=True)
     token_data = models.JSONField(_("Token data"), blank=True, null=True)
+    body_data = models.JSONField(_("Body data"), blank=True, null=True)
     tmf_claims = models.JSONField(_("TMF Claims"), blank=True, null=True)
     credential_id = models.CharField(_("Credential ID"), max_length=200, blank=True, null=True)
     credential_data = models.JSONField(_("Credential data"), blank=True, null=True)
