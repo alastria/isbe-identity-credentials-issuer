@@ -122,7 +122,7 @@ urlpatterns = [
     path("api/v1/password-change", password_change, name="password_change"),
     path(
         "password-reset",
-        auth_views.PasswordResetView.as_view(html_email_template_name="registration/custom_password_reset_email.html"),
+        auth_views.PasswordResetView.as_view(html_email_template_name="registration/password_reset_email.html"),
         name="admin_password_reset",
     ),
     path(

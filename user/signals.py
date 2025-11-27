@@ -18,7 +18,6 @@ import os
 from email.mime.image import MIMEImage
 
 import sentry_sdk
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.db.models.signals import post_save
@@ -27,11 +26,12 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from django_rest_passwordreset.signals import reset_password_token_created
 
+from project import settings
 from user.views import CustomResetPasswordRequestToken
 
 logger = logging.getLogger("django")
 
-PATH_LOGO = os.path.join(settings.BASE_DIR, "user/static/images/logo_demo.png")
+PATH_LOGO = os.path.join(settings.BASE_DIR, "issuance/static/images/logo_isbe.png")
 
 
 @receiver(reset_password_token_created)
@@ -46,7 +46,7 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
 
     try:
         msg = EmailMultiAlternatives(
-            _("Solicitud para restablecer contraseña en Demo"),
+            _("Solicitud para restablecer contraseña en ISBE"),
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
             [reset_password_token.user.email],
@@ -77,11 +77,11 @@ def send_welcome_message(sender, created, instance, **kwargs):
     if not instance.email:
         return
 
-    email_plaintext_message = render_to_string("email/welcome_message.html", {"web_app_url": settings.BACKEND_DOMAIN})
-    email_html_message = render_to_string("email/welcome_message.html", {"web_app_url": settings.BACKEND_DOMAIN})
+    email_plaintext_message = render_to_string("email/welcome_user.html", {"web_app_url": settings.BACKEND_DOMAIN})
+    email_html_message = render_to_string("email/welcome_user.html", {"web_app_url": settings.BACKEND_DOMAIN})
     try:
         msg = EmailMultiAlternatives(
-            _("Bienvenido a Demo"),
+            _("Bienvenido a ISBE"),
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
             [instance.email],
