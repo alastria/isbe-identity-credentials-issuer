@@ -64,12 +64,12 @@ A continuación se detallan los endpoints principales expuestos por la API, junt
 |--------|-------------------------------|-----------------------------------------------------------------------------------------------|
 | GET    | /health                       | Devuelve el estado de salud del servicio para monitorización y comprobación de disponibilidad. |
 | GET    | /metrics                      | Expone métricas internas del sistema para propósitos de observabilidad y monitoreo.            |
-| POST   | /issuance/claims              | Retorna los correspoientes claims para la correspodiente solicitud de credencial. |
+| POST   | /issuance/claims              | Retorna los correspondientes claims para la correspondiente solicitud de credencial. |
 | POST   | /issuance/employee            | Solicitar credencial para un empleado |
 | POST   | /issuance/identifiers         | Devuelve únicamente los vc_types para los que el subject_id tiene permisos. |
-| POST   | /issuance/notifications       | Recibe noticiaciones del componente "connector" indicando estados de las credenciales. |
-| POST   | /issuance/representative      | Solicitar creción de una credencial de representación para una empresa. |
-| POST   | /issuance/credential          | Recupeperar listado de credenciales de una o varias organizaciones. |
+| POST   | /issuance/notifications       | Recibe notificaciones del componente "connector" indicando estados de las credenciales. |
+| POST   | /issuance/representative      | Solicitar creación de una credencial de representación para una empresa. |
+| POST   | /issuance/credential          | Recuperar listado de credenciales de una o varias organizaciones. |
 | POST   | /issuance/credential/revoke   | Revocar una credencial |
 
 ## **5. Desarrollo del Artefacto**
@@ -149,3 +149,5 @@ El desarrollo del artefacto incluye los siguientes componentes principales:
 | Evolutivo menor    | X.Y+0.1    | Pull Request + revisión GT         | Release notes detalladas        |
 | Evolutivo mayor    | X+1.0      | Pull Request + revisión Comité     | Informe de impacto y release notes |
 | Correctivo         | X.Y.Z+1    | Pull Request + revisión GT         | Descripción del fix en release notes |
+
+Copyright © 2025 Comunidad de Madrid & Alastria
