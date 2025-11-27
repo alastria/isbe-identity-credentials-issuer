@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: identfy-third-party
+    image: identfy-credentials-issuer
     command: sh ./entrypoint.sh
     env_file:
       - .env
@@ -44,7 +44,7 @@ services:
     oom_kill_disable: false
 
   celery:
-    image: identfy-third-party
+    image: identfy-credentials-issuer
     command: celery -A project worker -l info -E
     environment:
       REDIS_HOST: redis

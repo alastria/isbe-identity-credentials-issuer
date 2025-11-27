@@ -12,7 +12,7 @@
           "size": "basic"
         }
       },
-      "name": "identfy-third-party",
+      "name": "identfy-credentials-issuer",
       "scripts": {},
       "stack": "container"
     }
