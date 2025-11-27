@@ -108,7 +108,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("api/v1/health", Health.as_view(), name="api-health"),
+    path("health", Health.as_view(), name="api-health"),
     path("api/v1/api-token-auth", LoginViewCustom.as_view()),
     path(
         "api/v1/custom/password-reset",
