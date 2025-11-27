@@ -1,3 +1,4 @@
+
 # Add this code in any Django app's admin.py
 # Works for all Task Statuses; you can filter them in line 12.
 

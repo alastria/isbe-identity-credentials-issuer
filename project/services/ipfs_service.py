@@ -1,3 +1,4 @@
+
 import json
 import os
 from project.settings import CERTIFICATIONS_SERVICE_PATH, IPFS_GATEWAY

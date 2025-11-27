@@ -1,3 +1,4 @@
+
 import logging
 import os
 
@@ -51,7 +52,9 @@ class S3Service:
     @staticmethod
     def delete_file(file_url):
         file_key = S3Service.get_file_key(file_url)
-        logging.info(f"\n ==> DELETE in S3. URL: {file_url} | KEY: {file_key}\n")
+        logging.info(f"
+ ==> DELETE in S3. URL: {file_url} | KEY: {file_key}
+")
         s3 = boto3.resource(
             "s3",
             aws_access_key_id=settings.AWS_ACCESS_KEY,

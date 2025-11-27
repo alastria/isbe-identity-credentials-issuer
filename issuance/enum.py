@@ -1,3 +1,4 @@
+
 from enum import Enum
 
 from issuance.models import CONFIG_KEY_VC_TYPES, Configuration

@@ -1,3 +1,4 @@
+
 """
 Django settings for punta_cana_back project.
 
