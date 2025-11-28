@@ -559,7 +559,7 @@ PROMETHEUS_METRIC_NAMESPACE = os.environ.get("PROMETHEUS_METRIC_NAMESPACE", "")
 
 # TODO: definir bien los permisos necesarios para poder tener acceso a los endpoints de emisión
 POWER_REQUIRED = [
-    {"type": ["organization"], "domain": ["ISBE"], "function": ["Onboarding"], "action": ["execute"]},
+    {"type": ["organization"], "domain": ["ISBE", "*"], "function": ["Onboarding"], "action": ["execute"]},
 ]
 
 try:

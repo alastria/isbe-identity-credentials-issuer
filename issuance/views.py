@@ -96,7 +96,7 @@ def representative_issuance(request):
         profile = get_profile()
         if not profile:
             raise Exception("PROFILE not configured")
-        subject_id = f"{token_data.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        subject_id = f"{token_data.get('organization_identifier')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_result = identify_register_preauth_code(profile.value, vc_type.value, subject_id)
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
@@ -168,7 +168,7 @@ def employee_issuance(request):
             raise Exception("VC type for employee is not configured")
         if not get_profile():
             raise Exception("PROFILE not configured")
-        subject_id = f"{token_data.get('email')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        subject_id = f"{serializer['email'].value}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_result = identify_register_preauth_code(get_profile().value, vc_type.value, subject_id)
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
@@ -186,7 +186,7 @@ def employee_issuance(request):
             status=IssuedCredentialStatus.PENDING.value,
         )
 
-        send_email_user_enrollment(token_data.get("email"), qr_content)
+        send_email_user_enrollment(serializer["email"].value, qr_content)
         return JsonResponse({"message": "sends email with QR to user"}, safe=False)
     except Exception:
         traceback.print_exc()
@@ -371,8 +371,7 @@ def get_claims_view(request):
             "Not found",
             "No issued credential found for the given profile, vc_identifier and subject_id",
         )
-    # quitar
-    issued_credential.credential_data = identify_get_credential(issued_credential.credential_id)
+
     try:
         """ Example response:"
         {
@@ -421,7 +420,7 @@ def get_claims_view(request):
             claims["mandate"]["mandator"]["email"] = email
         # TODO: se obtienen datos de data["organizationIdentification"][0]["attachment"]["content"] es un base64 con una credencial
 
-        if issued_credential.vc_type.lower().startswith("representative"):
+        if issued_credential.vc_type.lower().startswith("employee"):
             claims["mandate"]["mandatee"] = {
                 "employeId": issued_credential.body_data.get("employeId"),
                 "email": issued_credential.body_data.get("email"),

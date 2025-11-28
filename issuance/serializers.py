@@ -18,14 +18,14 @@ from rest_framework import serializers
 
 class IssueEmployeeCredentialSerializer(serializers.Serializer):
     power = serializers.ListField(child=serializers.DictField(), required=True)
+    employeId = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+    firstName = serializers.CharField(required=True)
+    lastName = serializers.CharField(required=True)
 
 
 class IssueRepresentativeCredentialSerializer(serializers.Serializer):
     power = serializers.ListField(child=serializers.DictField(), required=True)
-    employeId = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True)
-    firstName = serializers.CharField(required=True)
-    lastname = serializers.CharField(required=True)
 
 
 class ListIdentifiersSerializer(serializers.Serializer):

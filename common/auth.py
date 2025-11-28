@@ -69,7 +69,7 @@ def virifity_token_and_get_payload(request: HttpRequest) -> Tuple[Optional[dict[
             "email": "jdavidlb27@gmail.com",
             "power": [
                 {"type": "domain", "domain": "DOME", "function": "Onboarding", "action": ["execute"]},
-                {"type": "organization", "domain": "ISBE", "function": "Onboarding", "action": ["execute"]},
+                {"type": "organization", "domain": "*", "function": "Onboarding", "action": ["execute"]},
             ],
             "organization": "GOOD AIR, S.L.",
             "organization_identifier": "NTRIES-B12345678",
