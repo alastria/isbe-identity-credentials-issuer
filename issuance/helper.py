@@ -115,3 +115,12 @@ def check_and_get_errors_access_token(claims: dict) -> bool:
         missing.append("power is missing or invalid")
 
     return missing
+
+
+def get_item_value(data, list_items, name):
+    if list_items in data and isinstance(data[list_items], list):
+        list_items = data[list_items]
+        for item in list_items:
+            if item.get("name") == name:
+                return item.get("value")
+    return None

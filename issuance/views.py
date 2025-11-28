@@ -31,10 +31,10 @@ from common.identfy_connector import (
     identify_register_preauth_code,
     indentfy_revoke_credential,
 )
-from common.tmf_api import tmf_get_individual, tmf_get_organization
+from common.tmf_api import tmf_get_organization
 from issuance.emails import send_email_user_enrollment
 from issuance.enum import IssuedCredentialStatus
-from issuance.helper import check_and_get_errors_access_token, get_profile, validate_request
+from issuance.helper import check_and_get_errors_access_token, get_item_value, get_profile, validate_request
 from issuance.models import CONFIG_KEY_VC_TYPES, Configuration, IssuedCredential
 from issuance.serializers import (
     GetClaimsSerializer,
@@ -82,6 +82,12 @@ def representative_issuance(request):
         serializer = IssueRepresentativeCredentialSerializer(data=request.data)
         if not serializer.is_valid():
             return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
+
+        # TODO: chequear los poderes del body, hay que ver si tiene permisos para asisgnar esos poderes en la credencial que sera emitida
+        # En el body de la petición se recibirá un listado de poderes a asignar en la credencial. El emisor debe comprobar que ISBE
+        #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
+        #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
+        #  del conjunto autorizado, en caso contrario se deniega la operación.
 
         content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
@@ -145,11 +151,16 @@ def employee_issuance(request):
                 status.HTTP_400_BAD_REQUEST, "Missing required data or invalid powers", ", ".join(missing)
             )
 
-        # IssueEmployeeCredentialSerializer
         serializer = IssueEmployeeCredentialSerializer(data=request.data)
         if not serializer.is_valid():
             return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
         # TODO validade DNI?
+
+        # TODO: chequear los poderes del body, hay que ver si tiene permisos para asisgnar esos poderes en la credencial que sera emitida
+        # En el body de la petición se recibirá un listado de poderes a asignar en la credencial. El emisor debe comprobar que ISBE
+        #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
+        #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
+        #  del conjunto autorizado, en caso contrario se deniega la operación.
 
         qr_content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="employee").first()
@@ -360,15 +371,76 @@ def get_claims_view(request):
             "Not found",
             "No issued credential found for the given profile, vc_identifier and subject_id",
         )
+    # quitar
+    issued_credential.credential_data = identify_get_credential(issued_credential.credential_id)
     try:
-        org_legal_id = issued_credential.token_data.get("org_legal_id")
+        """ Example response:"
+        {
+            "mandate": {
+                "mandator": {
+                    "organization": "GOOD AIR, S.L.",
+                    "organizationIdentifier": "VATFR-B12345678",
+                    "country": "FR",
+                    "commonName": " GOOD AIR, S.L.",
+                    "serialNumber": "880692310285",
+                    "email": "jean.mar@goodair.fr",
+                },
+                "mandatee": {
+                    "employeId": "A-12345678",
+                    "email": "jane.smith@goodair.com",
+                    "firstName": "Jane",
+                    "lastName": "Smith",
+                },
+                "power": [{"type": "organization", "domain": "ISBE", "function": "Onboarding", "action": ["execute"]}],
+            }
+        }
+        """
+        data = tmf_get_organization(issued_credential.organization_identifier)
+        print("TMF organization data:", data)
+        claims = {
+            "mandate": {
+                "mandator": {
+                    "organization": data.get("name"),
+                    "organizationIdentifier": issued_credential.organization_identifier,
+                },
+                "mandatee": {},
+                "power": issued_credential.body_data.get("power", []),
+            }
+        }
+
+        country = get_item_value(data, "partyCharacteristic", "country")
+        if country:
+            claims["mandate"]["mandator"]["country"] = country
+        if "tradingName" in data:
+            claims["mandate"]["mandator"]["commonName"] = data["tradingName"]
+        serialNumber = get_item_value(data, "partyCharacteristic", "serialNumber")
+        if serialNumber:  # TODO: revisar, no encuentro donde se obtiene ese dato
+            claims["mandate"]["mandator"]["serialNumber"] = serialNumber
+        email = get_item_value(data, "partyCharacteristic", "email")
+        if email:  # TODO: revisar, no encuentro donde se obtiene ese dato
+            claims["mandate"]["mandator"]["email"] = email
+        # TODO: se obtienen datos de data["organizationIdentification"][0]["attachment"]["content"] es un base64 con una credencial
+
         if issued_credential.vc_type.lower().startswith("representative"):
-            data = tmf_get_organization(org_legal_id)
+            claims["mandate"]["mandatee"] = {
+                "employeId": issued_credential.body_data.get("employeId"),
+                "email": issued_credential.body_data.get("email"),
+                "firstName": issued_credential.body_data.get("firstName"),
+                "lastName": issued_credential.body_data.get("lastName"),
+            }
+
         else:
-            data = tmf_get_individual(org_legal_id)
+            # TODO: De momento listado vacio. Error 404 Client Not Found for url: https://tmf.evidenceledger.eu/tmf-api/party/v4/individual/urn:ngsi-ld:individual:NTRIES-B12345678"
+            # data = tmf_get_individual(issued_credential.organization_identifier)
+            claims["mandate"]["mandatee"] = {
+                "employeId": issued_credential.token_data.get("user_identifier"),
+                "email": issued_credential.token_data.get("email"),
+                "firstName": issued_credential.token_data.get("user"),
+                "lastName": "",
+            }
         issued_credential.tmf_claims = data
         issued_credential.save()
-        return JsonResponse({"subject_claims": data, "additional_claims": {}, "context_claims": {}}, safe=False)
+        return JsonResponse({"subject_claims": claims, "additional_claims": {}, "context_claims": {}}, safe=False)
     except Exception as e:
         traceback.print_exc()
         log.error(f"Error fetching organization data from TMF API: {e}")

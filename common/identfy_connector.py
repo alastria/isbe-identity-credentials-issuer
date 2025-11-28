@@ -19,12 +19,14 @@ import requests
 
 from issuance.helper import get_url_base_for_connector
 from project import settings
+from project.settings import IDENTFY_CONNECTOR_API_URL
 
 
 # TODO: ¿cambiar llamaa a /oid/credential-offer?
 def get_qr():
     headers = {
         "accept": "application/json",
+        "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
     resp = requests.get(get_url_base_for_connector() + "/credential-offer?response_mode=qr", headers=headers, timeout=8)
     # resp = requests.get(
@@ -64,10 +66,12 @@ def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) 
 def identify_get_credential(credential_id: str) -> dict:
     headers = {
         "accept": "application/json",
+        "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
-    # resp = requests.get(f"{_get_url_base()}/protected/credentials/{credential_id}", headers=headers)
-    # resp.raise_for_status()
-    # return resp.json()
+    resp = requests.get(f"{IDENTFY_CONNECTOR_API_URL}/issuer/credentials/{credential_id}", headers=headers)
+    resp.raise_for_status()
+    return resp.json()
+    """
     print("TODO. Quitar salto identify_get_credential")
     return {
         "credential_id": credential_id,
@@ -89,11 +93,13 @@ def identify_get_credential(credential_id: str) -> dict:
             },
         },
     }
+    """
 
 
 def indentfy_revoke_credential(credential_id: str) -> dict:
     headers = {
         "accept": "application/json",
+        "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
     # resp = requests.post(f"{_get_url_base()}/protected/credentials/{credential_id}/revoke", headers=headers)
     # resp.raise_for_status()
