@@ -111,6 +111,10 @@ jobs:
           echo "🛑 EMAIL_HOST_PASSWORD is not set in secrets"
           exit 1
         fi
+        if [[ -z "${{ vars.MANAGEMENT_API_URL }}" ]]; then
+          echo "🛑 MANAGEMENT_API_URL is not set in variables"
+          exit 1
+        fi
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -148,6 +152,7 @@ jobs:
         TMF_API_URL: ${{ vars.TMF_API_URL }}
         KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}
         EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+        MANAGEMENT_API_URL: ${{ vars.MANAGEMENT_API_URL }}
       run: |
         echo "🏗️ Environment: ${{ vars.ENVIRONMENT }}"
         echo "🚀 Desplegando desde rama: ${{ github.ref_name }}"

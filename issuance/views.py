@@ -31,6 +31,7 @@ from common.identfy_connector import (
     identify_register_preauth_code,
     indentfy_revoke_credential,
 )
+from common.managenent_api import check_roles_in_polices
 from common.tmf_api import tmf_get_organization
 from issuance.emails import send_email_user_enrollment
 from issuance.enum import IssuedCredentialStatus
@@ -88,6 +89,14 @@ def representative_issuance(request):
         #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
         #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
         #  del conjunto autorizado, en caso contrario se deniega la operación.
+        if not check_roles_in_polices(
+            token_data.get("organization_identifier"), serializer.validated_data.get("power", [])
+        ):
+            return send_error(
+                status.HTTP_400_BAD_REQUEST,
+                "Invalid powers",
+                "The requested powers are not authorized for the organization",
+            )
 
         content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
@@ -161,6 +170,14 @@ def employee_issuance(request):
         #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
         #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
         #  del conjunto autorizado, en caso contrario se deniega la operación.
+        if not check_roles_in_polices(
+            token_data.get("organization_identifier"), serializer.validated_data.get("power", [])
+        ):
+            return send_error(
+                status.HTTP_400_BAD_REQUEST,
+                "Invalid powers",
+                "The requested powers are not authorized for the organization",
+            )
 
         qr_content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="employee").first()
