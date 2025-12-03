@@ -115,6 +115,31 @@ jobs:
           echo "🛑 MANAGEMENT_API_URL is not set in variables"
           exit 1
         fi
+        if [[ -z "${{ vars.EMAIL_HOST }}" ]]; then
+          echo "🛑 EMAIL_HOST is not set in variables"
+          exit 1
+        fi
+        if [[ -z "${{ vars.EMAIL_PORT }}" ]]; then
+          echo "🛑 EMAIL_PORT is not set in variables 
+          exit 1"
+        fi
+        if [[ -z "${{ vars.EMAIL_USE_TLS }}" ]]; then
+          echo "🛑 EMAIL_USE_TLS is not set in variables"
+          exit 1
+        fi
+        if [[ -z "${{ vars.EMAIL_USE_SSL }}" ]]; then
+          echo "🛑 EMAIL_USE_SSL is not set in variables"
+          exit 1
+        fi
+        if [[ -z "${{ vars.EMAIL_HOST_USER }}" ]]; then
+          echo "🛑 EMAIL_HOST_USER is not set in variables"
+          exit 1
+        fi
+        if [[ -z "${{ vars.DEFAULT_FROM_EMAIL }}" ]]; then
+          echo "🛑 DEFAULT_FROM_EMAIL is not set in variables"  
+          exit 1
+        fi
+        echo "✅ All required variables and secrets are set."
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -153,6 +178,12 @@ jobs:
         KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}
         EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
         MANAGEMENT_API_URL: ${{ vars.MANAGEMENT_API_URL }}
+        EMAIL_HOST: ${{ vars.EMAIL_HOST }}
+        EMAIL_PORT: ${{ vars.EMAIL_PORT }}
+        EMAIL_USE_TLS: ${{ vars.EMAIL_USE_TLS }}
+        EMAIL_USE_SSL: ${{ vars.EMAIL_USE_SSL }}
+        EMAIL_HOST_USER: ${{ vars.EMAIL_HOST_USER }}
+        DEFAULT_FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL }}
       run: |
         echo "🏗️ Environment: ${{ vars.ENVIRONMENT }}"
         echo "🚀 Desplegando desde rama: ${{ github.ref_name }}"
