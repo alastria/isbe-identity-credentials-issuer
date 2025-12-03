@@ -38,7 +38,8 @@ def virifity_token_and_get_payload(request: HttpRequest) -> Tuple[Optional[dict[
     try:
         return verify_jwt(token)
     except ExpiredSignatureError:
-        # raise Exception("Token expired")
+        raise Exception("Token expired")
+        """
         print("TODO. Quitar salto Token expired")
         return {
             "exp": 1761908111,
@@ -75,6 +76,7 @@ def virifity_token_and_get_payload(request: HttpRequest) -> Tuple[Optional[dict[
             # "organization_identifier": "NTRIES-B12345678",
             "organization_identifier": "ORG-2024-001",
         }
+    """
     except Exception as e:
         print(e)
         raise Exception(f"Invalid token: {e}")
