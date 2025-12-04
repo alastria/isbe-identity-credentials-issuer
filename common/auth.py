@@ -75,6 +75,8 @@ def virifity_token_and_get_payload(request: HttpRequest) -> Tuple[Optional[dict[
             "organization": "GOOD AIR, S.L.",
             # "organization_identifier": "NTRIES-B12345678",
             "organization_identifier": "ORG-2024-001",
+
+            
         }
     """
     except Exception as e:
