@@ -17,9 +17,8 @@ from datetime import datetime
 
 import requests
 
-from issuance.helper import get_url_base_for_connector
+from issuance.helper import get_url_base_for_connector, get_url_base_for_connector_get_credential
 from project import settings
-from project.settings import IDENTFY_CONNECTOR_API_URL
 
 
 # TODO: ¿cambiar llamaa a /oid/credential-offer?
@@ -68,7 +67,7 @@ def identify_get_credential(credential_id: str) -> dict:
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
-    resp = requests.get(f"{IDENTFY_CONNECTOR_API_URL}/issuer/credentials/{credential_id}", headers=headers)
+    resp = requests.get(f"{get_url_base_for_connector_get_credential()}/{credential_id}", headers=headers)
     resp.raise_for_status()
     return resp.json()
     """

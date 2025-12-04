@@ -73,6 +73,11 @@ def get_url_base_for_connector():
     return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{api_version.value}/{profile.value}/{instance.value}"
 
 
+def get_url_base_for_connector_get_credential():
+    api_version = Configuration.objects.filter(key=CONFIG_KEY_API_VERSION).first()
+    return f"{IDENTFY_CONNECTOR_API_URL}/issuer/{api_version}/credentials"
+
+
 def check_and_get_errors_access_token(claims: dict) -> bool:
     missing = []
     # TODO: revisar todos los claims necesarios, añadir los que falten
