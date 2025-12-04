@@ -13,11 +13,9 @@
 # limitations under the License.
 
 
-from datetime import datetime
-
 import requests
 
-from issuance.helper import get_url_base_for_connector, get_url_base_for_connector_get_credential
+from issuance.helper import get_url_base_for_connector, get_url_base_for_connector_credential
 from project import settings
 
 
@@ -67,32 +65,9 @@ def identify_get_credential(credential_id: str) -> dict:
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
-    resp = requests.get(f"{get_url_base_for_connector_get_credential()}/{credential_id}", headers=headers)
+    resp = requests.get(f"{get_url_base_for_connector_credential()}/{credential_id}", headers=headers)
     resp.raise_for_status()
     return resp.json()
-    """
-    print("TODO. Quitar salto identify_get_credential")
-    return {
-        "credential_id": credential_id,
-        "credential_data": {
-            "id": credential_id,
-            "type": ["VerifiableCredential", "ExampleCredential"],
-            "issuer": "did:example:issuer123",
-            "issuanceDate": "2024-01-01T00:00:00Z",
-            "credentialSubject": {
-                "id": "did:example:subject456",
-                "exampleField": "exampleValue",
-            },
-            "proof": {
-                "type": "Ed25519Signature2018",
-                "created": "2024-01-01T00:00:00Z",
-                "proofPurpose": "assertionMethod",
-                "verificationMethod": "did:example:issuer123#key-1",
-                "jws": "eyJ...signature...",
-            },
-        },
-    }
-    """
 
 
 def indentfy_revoke_credential(credential_id: str) -> dict:
@@ -100,12 +75,11 @@ def indentfy_revoke_credential(credential_id: str) -> dict:
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
-    # resp = requests.post(f"{_get_url_base()}/protected/credentials/{credential_id}/revoke", headers=headers)
-    # resp.raise_for_status()
-    # return resp.json()
-    print("TODO. Quitar salto indentfy_revoke_credential")
-    return {
-        "credential_id": credential_id,
-        "status": "revoked",
-        "revocationDate": datetime.now().isoformat(),
+    paylod = {
+        "status": "0x1"  # revoked
     }
+    resp = requests.post(
+        f"{get_url_base_for_connector_credential()}/{credential_id}/status", headers=headers, json=paylod
+    )
+    resp.raise_for_status()
+    return resp.json()

@@ -73,7 +73,7 @@ def get_url_base_for_connector():
     return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{api_version.value}/{profile.value}/{instance.value}"
 
 
-def get_url_base_for_connector_get_credential():
+def get_url_base_for_connector_credential():
     api_version = Configuration.objects.filter(key=CONFIG_KEY_API_VERSION).first()
     if not api_version:
         raise Exception("API_VERSION not configured")

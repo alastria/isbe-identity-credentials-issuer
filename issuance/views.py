@@ -632,7 +632,7 @@ def revoke_credential(request, credential_id):
             return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
 
         result = indentfy_revoke_credential(credential_id)
-        if result.get("status") != "revoked":
+        if result.get("status") != "0x1":
             return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to revoke credential")
         issued_credential.status = IssuedCredentialStatus.REVOKED.value
         issued_credential.update_at = datetime.now()
