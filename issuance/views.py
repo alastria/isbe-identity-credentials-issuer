@@ -85,7 +85,6 @@ def representative_issuance(request):
         if not serializer.is_valid():
             return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
 
-        # TODO: chequear los poderes del body, hay que ver si tiene permisos para asisgnar esos poderes en la credencial que sera emitida
         # En el body de la petición se recibirá un listado de poderes a asignar en la credencial. El emisor debe comprobar que ISBE
         #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
         #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
@@ -166,7 +165,6 @@ def employee_issuance(request):
             return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
         # TODO validade DNI?
 
-        # TODO: chequear los poderes del body, hay que ver si tiene permisos para asisgnar esos poderes en la credencial que sera emitida
         # En el body de la petición se recibirá un listado de poderes a asignar en la credencial. El emisor debe comprobar que ISBE
         #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
         #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
@@ -684,7 +682,6 @@ def _check_permissions_in_revoke(token_data, organization_identifier):
 def _check_permissions_in_get_credentials(token_data, organization_identifier):
     print(f" ==> power: {token_data['power']}")
     # check organization_identifier and permissions
-    # TODO: check if has admin role to get other organization_identifier credentials
     token_org_identity = token_data.get("organization_identifier")
     # Check can access organization_identifier
     if not token_org_identity == organization_identifier and not _check_is_admin_role(token_data):

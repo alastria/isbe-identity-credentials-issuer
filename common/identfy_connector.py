@@ -19,7 +19,6 @@ from issuance.helper import get_url_base_for_connector, get_url_base_for_connect
 from project import settings
 
 
-# TODO: ¿cambiar llamaa a /oid/credential-offer?
 def get_qr():
     headers = {
         "accept": "application/json",
@@ -52,12 +51,6 @@ def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) 
     if resp.status_code not in (200, 201):
         raise Exception(f"Error getting QR from Identfy Connector: {resp.status_code} - {resp.text}")
     return resp.json()
-    # print("TODO. Quitar salto identify_register_preauth_code")
-    # return {
-    #    "preauth_code": "abcd-1234-efgh-5678",
-    #    "expires_in": datetime.now() + timedelta(days=30),
-    #    "tx_code?": "algo_tx_code",
-    # }
 
 
 def identify_get_credential(credential_id: str) -> dict:

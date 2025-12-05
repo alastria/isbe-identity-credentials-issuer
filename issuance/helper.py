@@ -82,8 +82,6 @@ def get_url_base_for_connector_credential():
 
 def check_and_get_errors_access_token(claims: dict) -> bool:
     missing = []
-    # TODO: revisar todos los claims necesarios, añadir los que falten
-    # Algunos pueden cambiar de nombre o no ser obligatorios
     requeries = ["power", "user", "user_identifier", "organization_identifier", "organization", "email"]
     for req in requeries:
         if req not in claims:

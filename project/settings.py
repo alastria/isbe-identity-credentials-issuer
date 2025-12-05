@@ -432,7 +432,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
-}  # TODO USE REDIS ?
+}
 INTERNAL_IPS = ["*"]
 
 WS_FEATURE_TOGGLE_PATH = os.environ.get("WS_FEATURE_TOGGLE_PATH", "ws://localhost:8000/ws/features/updates")
@@ -558,7 +558,6 @@ SWAGGER_SETTINGS = {
 }
 
 
-# TODO pendiente de ver si será la misma url base de IDENTFY_CONNECTOR_API_URL
 KEYCLOAK_JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL")
 IDENTFY_CONNECTOR_API_URL = os.getenv("IDENTFY_CONNECTOR_API_URL", "")
 IDENTFY_CONNECTOR_API_KEY = os.getenv("IDENTFY_CONNECTOR_API_KEY", "")
@@ -567,11 +566,11 @@ MANAGEMENT_API_URL = os.getenv("MANAGEMENT_API_URL", "")
 
 PROMETHEUS_METRIC_NAMESPACE = os.environ.get("PROMETHEUS_METRIC_NAMESPACE", "")
 
-# TODO: definir bien los permisos necesarios para poder tener acceso a los endpoints de emisión
+
 FUNCTION_REQUIRED = "Identity"
 POWER_REQUIRED = [
-    {"type": ["organization"], "domain": ["ISBE", "*"], "function": [FUNCTION_REQUIRED], "action": ["*", "execute"]},
-    {"type": ["domain"], "domain": ["ISBE"], "function": [FUNCTION_REQUIRED], "action": ["*", "execute"]},
+    {"type": ["organization"], "domain": ["ISBE", "*"], "function": [FUNCTION_REQUIRED], "action": ["*", "write"]},
+    {"type": ["domain"], "domain": ["ISBE"], "function": [FUNCTION_REQUIRED], "action": ["*", "write"]},
 ]
 
 try:

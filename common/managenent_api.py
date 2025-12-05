@@ -18,7 +18,6 @@ import requests
 from project.settings import MANAGEMENT_API_URL
 
 
-# TODO: ¿cambiar llamaa a /oid/credential-offer?
 def get_management_by_organization(organization_identifier: str) -> dict:
     headers = {
         "accept": "application/json",
@@ -48,7 +47,6 @@ def check_roles_in_polices(organization_identifier: str, powers: list[dict]) -> 
                 and policy.get("function") == power.get("function")
             ):
                 action_policy = policy.get("action", [])
-                # TODO: revisar si es correcto, dejar * que cualquier acción es válida, o debe de ser igual una por una
                 if "*" in action_policy:
                     exist = True
                     break
