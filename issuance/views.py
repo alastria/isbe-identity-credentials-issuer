@@ -46,6 +46,7 @@ from issuance.serializers import (
     ListIdentifiersSerializer,
     NotificationSerializer,
 )
+from project.settings import FUNCTION_REQUIRED
 
 log = logging.getLogger(__name__)
 
@@ -628,7 +629,7 @@ def revoke_credential(request, credential_id):
             return send_error(status.HTTP_404_NOT_FOUND, "Credential not found")
 
         # check permissions
-        if _check_permissions(token_data, issued_credential.organization_identifier) is False:
+        if _check_permissions_in_revoke(token_data, issued_credential.organization_identifier) is False:
             return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
 
         result = indentfy_revoke_credential(credential_id)
@@ -644,14 +645,53 @@ def revoke_credential(request, credential_id):
         return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error", str(e))
 
 
-def _check_permissions(token_data, organization_identifier):
+def _check_is_admin_role(token_data):
+    # check admin role
+    powers = token_data["power"]
+    for power in powers:
+        if "domain" == power["type"]:
+            return True
+    return False
+
+
+def _check_actions_in_power(token_data, expected_actions):
+    powers = token_data["power"]
+    for power in powers:
+        if power["function"] != FUNCTION_REQUIRED:
+            continue
+        if "action" not in power or not isinstance(power["action"], list):
+            continue
+        if "*" in power["action"]:
+            return True
+        for action_required in expected_actions:
+            if action_required in power["action"]:
+                return True
+    return False
+
+
+def _check_permissions_in_revoke(token_data, organization_identifier):
+    print(f" ==> power: {token_data['power']}")
     # check organization_identifier and permissions
-    if organization_identifier:
-        token_org_identity = token_data.get("organization_identifier")
-        if token_org_identity != organization_identifier:
-            # TODO: check if has admin role to get other organization_identifier credentials
-            return False
-    return True
+    token_org_identity = token_data.get("organization_identifier")
+    # Check can access organization_identifier
+    if token_org_identity != organization_identifier and not _check_is_admin_role(token_data):
+        print(" ==> organization_identifier mismatch and not admin")
+        return False
+    # check permissions for operation
+    return _check_actions_in_power(token_data, ["delete"])
+
+
+def _check_permissions_in_get_credentials(token_data, organization_identifier):
+    print(f" ==> power: {token_data['power']}")
+    # check organization_identifier and permissions
+    # TODO: check if has admin role to get other organization_identifier credentials
+    token_org_identity = token_data.get("organization_identifier")
+    # Check can access organization_identifier
+    if not token_org_identity == organization_identifier and not _check_is_admin_role(token_data):
+        print(" ==> organization_identifier mismatch and not admin")
+        return False
+    # check permissions for operation
+    return _check_actions_in_power(token_data, ["read", "write"])
 
 
 def _get_credentials_by_organization_identifier(request, organization_identifier=None):
@@ -661,15 +701,17 @@ def _get_credentials_by_organization_identifier(request, organization_identifier
         log.error(f"Auth error: {e}")
         return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
 
-    # check permissions
-    if _check_permissions(token_data, organization_identifier) is False:
-        return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
-
-    if not organization_identifier:
+    if not organization_identifier and not _check_is_admin_role(token_data):
         organization_identifier = token_data.get("organization_identifier")
         if not organization_identifier:
-            # TODO: check if has admin role to get all credentials
-            return send_error(status.HTTP_400_BAD_REQUEST, "Missing organization_identifier parameter")
+            return send_error(
+                status.HTTP_400_BAD_REQUEST, "Missing organization_identifier in parameter and access token"
+            )
+
+    print("organization_identifier:", organization_identifier)
+    # check permissions
+    if _check_permissions_in_get_credentials(token_data, organization_identifier) is False:
+        return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")
 
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 20)

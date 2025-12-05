@@ -96,6 +96,8 @@ def check_and_get_errors_access_token(claims: dict) -> bool:
     #            {"type": "domain", "domain": "ISBE", "function": "Credentials", "action": ["execute"]},
     #        ],
     # Check power in claims
+    print(f"claims power: {claims['power']}")
+    print(f"settings POWER_REQUIRED: {settings.POWER_REQUIRED}")
     if "power" in claims and isinstance(claims["power"], list):
         powers = claims["power"]
         has_power = False
@@ -110,10 +112,12 @@ def check_and_get_errors_access_token(claims: dict) -> bool:
                     continue
                 if "action" not in power or not isinstance(power["action"], list):
                     continue
-                if not all(action in power["action"] for action in power_required["action"]):
-                    continue
-                has_power = True
-                break
+
+                print(f" ==> power required actions: {power_required['action']}, power actions: {power['action']}")
+                if any(act in power["action"] for act in power_required["action"]):
+                    has_power = True
+                    break
+
             if has_power:
                 break
         if not has_power:
