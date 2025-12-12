@@ -98,7 +98,7 @@ def representative_issuance(request):
                 "The requested powers are not authorized for the organization",
             )
 
-        content, ctype = get_qr()
+        
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
         if not vc_type:
             raise Exception("VC type for representative is not configured")
@@ -109,6 +109,7 @@ def representative_issuance(request):
         preauth_result = identify_register_preauth_code(profile.value, vc_type.value, subject_id)
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
+        qr_content, qr_ctype = get_qr(preauth_result["preauth_code"], vc_type.value)
         date_expires = datetime.now()
         date_expires = date_expires.replace(microsecond=0)
         date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
@@ -122,7 +123,7 @@ def representative_issuance(request):
             organization_identifier=token_data.get("organization_identifier"),
             status=IssuedCredentialStatus.PENDING.value,
         )
-        return HttpResponse(content, content_type=ctype)
+        return HttpResponse(qr_content, content_type=qr_ctype)
     except Exception:
         traceback.print_exc()
         return send_error(status.HTTP_500_INTERNAL_SERVER_ERROR, "Internal error")
@@ -178,7 +179,6 @@ def employee_issuance(request):
                 "The requested powers are not authorized for the organization",
             )
 
-        qr_content, ctype = get_qr()
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="employee").first()
         if not vc_type:
             raise Exception("VC type for employee is not configured")
@@ -188,6 +188,7 @@ def employee_issuance(request):
         preauth_result = identify_register_preauth_code(get_profile().value, vc_type.value, subject_id)
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
+        qr_content, qr_ctype = get_qr(preauth_result["preauth_code"], vc_type.value)
         date_expires = datetime.now()
         date_expires = date_expires.replace(microsecond=0)
         date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
