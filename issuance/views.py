@@ -447,11 +447,25 @@ def get_claims_view(request):
         else:
             # TODO: De momento listado vacio. Error 404 Client Not Found for url: https://tmf.evidenceledger.eu/tmf-api/party/v4/individual/urn:ngsi-ld:individual:NTRIES-B12345678"
             # data = tmf_get_individual(issued_credential.organization_identifier)
+            first_name = ""
+            last_name = ""
+            # TODO: obtener givenName
+            # TODO: obtener familyName
+            if "givenName" in issued_credential.token_data and "familyName" in issued_credential.token_data:
+                first_name = issued_credential.token_data.get("givenName")
+                last_name = issued_credential.token_data.get("familyName")
+            elif "user" in issued_credential.token_data.get("user"):
+                first_name = issued_credential.token_data.get("user").split(" ")[0]
+                last_name = " ".join(issued_credential.token_data.get("user").split(" ")[1:])
+            elif "name" in issued_credential.token_data:
+                first_name = issued_credential.token_data.get("name").split(" ")[0]
+                last_name = " ".join(issued_credential.token_data.get("name").split(" ")[1:])
+
             claims["mandate"]["mandatee"] = {
                 "employeId": issued_credential.token_data.get("user_identifier"),
                 "email": issued_credential.token_data.get("email"),
-                "firstName": issued_credential.token_data.get("user"),
-                "lastName": "",
+                "firstName": first_name,
+                "lastName": last_name,
             }
         issued_credential.tmf_claims = data
         issued_credential.save()

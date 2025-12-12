@@ -82,7 +82,7 @@ def get_url_base_for_connector_credential():
 
 def check_and_get_errors_access_token(claims: dict) -> bool:
     missing = []
-    requeries = ["power", "user", "user_identifier", "organization_identifier", "organization", "email"]
+    requeries = ["power", "user_identifier", "organization_identifier", "organization", "email"]
     for req in requeries:
         if req not in claims:
             missing.append(req)
