@@ -355,10 +355,10 @@ def _isbe_identier_to_vc_type(identifier: str) -> str:
             required=True,
         ),
         openapi.Parameter(
-            name="vc_type",
+            name="vc_identifier",
             in_=openapi.IN_QUERY,
             type=openapi.TYPE_STRING,
-            description="VC type",
+            description="VC identifier",
             required=True,
         ),
         openapi.Parameter(
