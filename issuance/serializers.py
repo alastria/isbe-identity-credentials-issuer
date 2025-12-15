@@ -58,9 +58,12 @@ class GetCredentialsByOrganizationIdentitySerializer(serializers.Serializer):
     credential_id = serializers.CharField(required=False, allow_blank=True)
     organization_identifier = serializers.CharField(required=True)
     vc_type = serializers.CharField(required=False, allow_blank=True)
+    credential_type = serializers.CharField(required=False, allow_blank=True)
     status = serializers.CharField(required=False, allow_blank=True)
     creation_at = serializers.DateTimeField(required=False)
     update_at = serializers.DateTimeField(required=False)
+    power = serializers.ListField(child=serializers.DictField(), required=False)
+    employee = serializers.DictField(child=serializers.CharField(), required=False)
 
 
 class ListGetCredentialsByOrganizationIdentitySerializer(serializers.Serializer):

@@ -98,7 +98,6 @@ def representative_issuance(request):
                 "The requested powers are not authorized for the organization",
             )
 
-        
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
         if not vc_type:
             raise Exception("VC type for representative is not configured")
@@ -122,6 +121,8 @@ def representative_issuance(request):
             body_data=serializer.validated_data,
             organization_identifier=token_data.get("organization_identifier"),
             status=IssuedCredentialStatus.PENDING.value,
+            credential_type="representative",
+            employee_id=token_data.get("user_identifier", ""),
         )
         return HttpResponse(qr_content, content_type=qr_ctype)
     except Exception:
@@ -201,6 +202,8 @@ def employee_issuance(request):
             body_data=serializer.validated_data,
             organization_identifier=token_data.get("organization_identifier"),
             status=IssuedCredentialStatus.PENDING.value,
+            credential_type="employee",
+            employee_id=serializer.validated_data.get("employeId", ""),
         )
 
         send_email_user_enrollment(serializer["email"].value, qr_content)
@@ -437,7 +440,7 @@ def get_claims_view(request):
             claims["mandate"]["mandator"]["email"] = email
         # TODO: se obtienen datos de data["organizationIdentification"][0]["attachment"]["content"] es un base64 con una credencial
 
-        if issued_credential.vc_type.lower().startswith("employee"):
+        if issued_credential.credential_type == "employee":
             claims["mandate"]["mandatee"] = {
                 "employeId": issued_credential.body_data.get("employeId"),
                 "email": issued_credential.body_data.get("email"),
@@ -450,11 +453,9 @@ def get_claims_view(request):
             # data = tmf_get_individual(issued_credential.organization_identifier)
             first_name = ""
             last_name = ""
-            # TODO: obtener givenName
-            # TODO: obtener familyName
-            if "givenName" in issued_credential.token_data and "familyName" in issued_credential.token_data:
-                first_name = issued_credential.token_data.get("givenName")
-                last_name = issued_credential.token_data.get("familyName")
+            if "given_name" in issued_credential.token_data and "family_name" in issued_credential.token_data:
+                first_name = issued_credential.token_data.get("given_name")
+                last_name = issued_credential.token_data.get("family_name")
             elif "user" in issued_credential.token_data.get("user"):
                 first_name = issued_credential.token_data.get("user").split(" ")[0]
                 last_name = " ".join(issued_credential.token_data.get("user").split(" ")[1:])
@@ -546,6 +547,13 @@ def handle_notifications(request):
     },
     manual_parameters=[
         openapi.Parameter(
+            name="employee_id",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Employee ID to filter issued credentials (optional)",
+            required=False,
+        ),
+        openapi.Parameter(
             name="page",
             in_=openapi.IN_QUERY,
             type=openapi.TYPE_INTEGER,
@@ -579,6 +587,13 @@ def get_credentials(request):
         ),
     ],
     manual_parameters=[
+        openapi.Parameter(
+            name="employee_id",
+            in_=openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+            description="Employee ID to filter issued credentials (optional)",
+            required=False,
+        ),
         openapi.Parameter(
             name="page",
             in_=openapi.IN_QUERY,
@@ -706,7 +721,7 @@ def _check_permissions_in_get_credentials(token_data, organization_identifier):
     return _check_actions_in_power(token_data, ["read", "write"])
 
 
-def _get_credentials_by_organization_identifier(request, organization_identifier=None):
+def _get_credentials_by_organization_identifier(request, organization_identifier=None, employee_id=None):
     try:
         token_data = virifity_token_and_get_payload(request)
     except Exception as e:
@@ -727,6 +742,7 @@ def _get_credentials_by_organization_identifier(request, organization_identifier
 
     page = request.GET.get("page", 1)
     page_size = request.GET.get("page_size", 20)
+    employee_id = request.GET.get("employee_id", employee_id)
     try:
         page = int(page)
         page_size = int(page_size)
@@ -735,14 +751,18 @@ def _get_credentials_by_organization_identifier(request, organization_identifier
 
     try:
         logging.debug("organization_identifier=%s", organization_identifier)
-        paginator = Paginator(
-            IssuedCredential.objects.filter(organization_identifier=organization_identifier)
-            .all()
-            .order_by("-creation_at")
-            if organization_identifier
-            else IssuedCredential.objects.all().order_by("-creation_at"),
-            page_size,
-        )
+        if organization_identifier and employee_id:
+            query = (
+                IssuedCredential.objects.filter(organization_identifier=organization_identifier)
+                .filter(employee_id=employee_id)
+                .all()
+            )
+        elif organization_identifier:
+            query = IssuedCredential.objects.filter(organization_identifier=organization_identifier).all()
+        else:
+            query = IssuedCredential.objects.all()
+        query = query.order_by("-creation_at")
+        paginator = Paginator(query, page_size)
         try:
             issued_credentials = paginator.page(page)
         except (PageNotAnInteger, EmptyPage):
@@ -753,14 +773,36 @@ def _get_credentials_by_organization_identifier(request, organization_identifier
 
         credentials_list: list[GetCredentialsByOrganizationIdentitySerializer] = []
         for cred in issued_credentials:
+            employee = {}
+            if cred.credential_type == "employee":
+                employee["employee_id"] = cred.employee_id
+                employee["email"] = cred.body_data.get("email", "")
+                employee["first_name"] = cred.body_data.get("firstName", "")
+                employee["last_name"] = cred.body_data.get("lastName", "")
+            else:
+                employee["employee_id"] = cred.employee_id
+                employee["email"] = cred.token_data.get("email", "")
+                if "given_name" in cred.token_data:
+                    employee["first_name"] = cred.token_data.get("given_name", "")
+                    employee["last_name"] = cred.token_data.get("family_name", "")
+                elif "user" in cred.token_data:
+                    employee["first_name"] = cred.token_data.get("user", "").split(" ")[0]
+                    employee["last_name"] = " ".join(cred.token_data.get("user", "").split(" ")[1:])
+                elif "name" in cred.token_data:
+                    employee["first_name"] = cred.token_data.get("name", "").split(" ")[0]
+                    employee["last_name"] = " ".join(cred.token_data.get("name", "").split(" ")[1:])
+
             credentials_list.append(
                 {
                     "credential_id": cred.credential_id,
                     "organization_identifier": cred.organization_identifier,
                     "vc_type": cred.vc_type,
+                    "credential_type": cred.credential_type,
                     "status": cred.status,
                     "creation_at": cred.creation_at,
                     "update_at": cred.update_at,
+                    "power": cred.body_data.get("power", []) if cred.body_data else [],
+                    "employee": employee,
                 }
             )
 

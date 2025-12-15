@@ -48,6 +48,8 @@ class IssuedCredential(models.Model):
     tmf_claims = models.JSONField(_("TMF Claims"), blank=True, null=True)
     credential_id = models.CharField(_("Credential ID"), max_length=200, blank=True, null=True)
     credential_data = models.JSONField(_("Credential data"), blank=True, null=True)
+    credential_type = models.CharField(_("Credential type"), max_length=40, blank=True, null=True)
+    employee_id = models.CharField(_("Employee ID"), max_length=20, blank=True, null=True)
 
     def __str__(self):
         return f"Credential {self.vc_type} for {self.subject_id} update at {self.update_at}"
