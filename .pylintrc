@@ -494,7 +494,7 @@ int-import-graph=
 known-standard-library=
 
 # Force import order to recognize a module as part of a third party library.
-known-third-party=enchant
+known-credentials-issuer=enchant
 
 
 [CLASSES]

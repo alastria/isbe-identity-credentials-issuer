@@ -1,9 +1,23 @@
+# Copyright (c) 2025 Comunidad de Madrid & Alastria
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+#
+# You may obtain a copy of the License at
+# [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0 "http://www.apache.org/licenses/license-2.0")
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 import logging
 import os
 from email.mime.image import MIMEImage
 
 import sentry_sdk
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
 from django.db.models.signals import post_save
@@ -12,11 +26,12 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 from django_rest_passwordreset.signals import reset_password_token_created
 
+from project import settings
 from user.views import CustomResetPasswordRequestToken
 
 logger = logging.getLogger("django")
 
-PATH_LOGO = os.path.join(settings.BASE_DIR, "user/static/images/logo_demo.png")
+PATH_LOGO = os.path.join(settings.BASE_DIR, "issuance/static/images/logo_isbe.png")
 
 
 @receiver(reset_password_token_created)
@@ -31,7 +46,7 @@ def password_reset_token_created(sender, instance, reset_password_token, **kwarg
 
     try:
         msg = EmailMultiAlternatives(
-            _("Solicitud para restablecer contraseña en Demo"),
+            _("Solicitud para restablecer contraseña en ISBE"),
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
             [reset_password_token.user.email],
@@ -62,11 +77,11 @@ def send_welcome_message(sender, created, instance, **kwargs):
     if not instance.email:
         return
 
-    email_plaintext_message = render_to_string("email/welcome_message.html", {"web_app_url": settings.BACKEND_DOMAIN})
-    email_html_message = render_to_string("email/welcome_message.html", {"web_app_url": settings.BACKEND_DOMAIN})
+    email_plaintext_message = render_to_string("email/welcome_user.html", {"web_app_url": settings.BACKEND_DOMAIN})
+    email_html_message = render_to_string("email/welcome_user.html", {"web_app_url": settings.BACKEND_DOMAIN})
     try:
         msg = EmailMultiAlternatives(
-            _("Bienvenido a Demo"),
+            _("Bienvenido a ISBE"),
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
             [instance.email],

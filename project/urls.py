@@ -1,3 +1,18 @@
+# Copyright (c) 2025 Comunidad de Madrid & Alastria
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+#
+# You may obtain a copy of the License at
+# [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0 "http://www.apache.org/licenses/license-2.0")
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 """<SITE_NAME> URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -93,7 +108,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("api/v1/health", Health.as_view(), name="api-health"),
+    path("health", Health.as_view(), name="api-health"),
     path("api/v1/api-token-auth", LoginViewCustom.as_view()),
     path(
         "api/v1/custom/password-reset",
@@ -107,7 +122,7 @@ urlpatterns = [
     path("api/v1/password-change", password_change, name="password_change"),
     path(
         "password-reset",
-        auth_views.PasswordResetView.as_view(html_email_template_name="registration/custom_password_reset_email.html"),
+        auth_views.PasswordResetView.as_view(html_email_template_name="registration/password_reset_email.html"),
         name="admin_password_reset",
     ),
     path(

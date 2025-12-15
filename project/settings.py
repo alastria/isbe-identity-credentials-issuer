@@ -1,3 +1,18 @@
+# Copyright (c) 2025 Comunidad de Madrid & Alastria
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+#
+# You may obtain a copy of the License at
+# [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0 "http://www.apache.org/licenses/license-2.0")
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 """
 Django settings for punta_cana_back project.
 
@@ -27,7 +42,7 @@ def readEnvBool(envVarName: str, default: bool) -> bool:
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-SITE_NAME = os.environ.get("SITE_NAME", "identfy-third-party")
+SITE_NAME = os.environ.get("SITE_NAME", "identfy-credentials-issuer")
 LOCALE_PATHS = [(os.path.join(BASE_DIR, "locale/"))]
 
 env = environ.Env()
@@ -238,26 +253,35 @@ CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 # Email settings
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.serviciodecorreo.es")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465))
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
+
+if os.environ.get("EMAIL_USE_TLS", "False") in ["True", "true", "1"]:
+    EMAIL_USE_TLS = True
+else:
+    EMAIL_USE_TLS = False
+if os.environ.get("EMAIL_USE_SSL", "False") in ["True", "true", "1"]:
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False  # SSL and TLS cannot be used together
+else:
+    EMAIL_USE_SSL = False
+
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "register@redisbe.com")
-DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "register@redisbe.com")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "no-reply@redisbe.com")
+DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "no-reply@redisbe.com")
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 # EMAIL_BACKEND = "postmarker.django.EmailBackend"
 #    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 JAZZMIN_SETTINGS: Dict[str, Any] = {
-    "site_title": "Identfy Admin",
-    "site_header": "Identfy",
-    "site_brand": "Identfy",
-    "login_logo": "images/logo/identfy_white.svg",
-    "login_logo_dark": "images/logo/identfy_white.svg",
+    "site_title": "Credential Issuer Admin",
+    "site_header": "Credential Issuer",
+    "site_brand": "Credential Issuer",
+    "login_logo": "images/logo/logo.png",
+    "login_logo_dark": "images/logo/logo.png",
     "site_logo_classes": "img-circle",
-    "site_icon": "images/icon/identfy_icon.png",
-    "welcome_sign": _("Welcome to the Identfy Admin Site"),
-    "copyright": _("Izertis"),
+    "site_icon": "images/icon/logo.ico",
+    "welcome_sign": _("Welcome to the ISBE Credential Issuer Admin Site"),
+    "copyright": _("Alastria"),
     "search_model": ["auth.User", "auth.Group"],
     "user_avatar": None,
     ############
@@ -332,7 +356,7 @@ JAZZMIN_SETTINGS: Dict[str, Any] = {
     #############
     # UI Tweaks #
     #############
-    "custom_css": "css/izertis.css",
+    "custom_css": "css/issuer.css",
     "custom_js": None,
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
@@ -408,7 +432,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
-}  # TODO USE REDIS ?
+}
 INTERNAL_IPS = ["*"]
 
 WS_FEATURE_TOGGLE_PATH = os.environ.get("WS_FEATURE_TOGGLE_PATH", "ws://localhost:8000/ws/features/updates")
@@ -455,6 +479,15 @@ WEB_APP_LINK = os.environ.get("FRONTEND_URL", "")
 
 JWT_PASSWORD = os.environ.get("JWT_PASSWORD", "24c@lgo")
 
+
+LOGOUT_REDIRECT_URL = "/"
+
+OPERATOR_AUTOMATIC_STAFF = os.environ.get("OPERATOR_AUTOMATIC_STAFF", True)
+CRYPTO_SERVICE_URL = os.environ.get("CRYPTO_SERVICE_URL", "")
+
+GOOGLE_TAG_ACTIVE = int(os.environ.get("GOOGLE_TAG_ACTIVE", 0))  # Active only production deploy
+GOOGLE_TAG_KEY = os.environ.get("GOOGLE_TAG_KEY", "GTM-XXXXX")  # Set correct value for OOGLE_TAG_KEY
+
 LOGGING = {
     "version": 1,
     "filters": {
@@ -471,66 +504,19 @@ LOGGING = {
         }
     },
     "loggers": {
-        # debug show SQL queries
-        # "django.db.backends": {
-        #    "level": "DEBUG",
-        #    "handlers": ["console"],
-        # },
+        # Active for show SQL queries
+        #        "django.db.backends": {
+        #            "level": "DEBUG",
+        #            "handlers": ["console"],
+        #            "propagate": False,
+        #        },
         "django": {
             "handlers": ["console"],
             "level": "INFO",
         },
     },
 }
-LOGOUT_REDIRECT_URL = "/"
 
-OPERATOR_AUTOMATIC_STAFF = os.environ.get("OPERATOR_AUTOMATIC_STAFF", True)
-CRYPTO_SERVICE_URL = os.environ.get("CRYPTO_SERVICE_URL", "")
-
-GOOGLE_TAG_ACTIVE = int(os.environ.get("GOOGLE_TAG_ACTIVE", 0))  # Active only production deploy
-GOOGLE_TAG_KEY = os.environ.get("GOOGLE_TAG_KEY", "GTM-XXXXX")  # Set correct value for OOGLE_TAG_KEY
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "filters": {
-        "contextvars": {"()": "project.logging.conf.ContextVarsFilter"},
-    },
-    "formatters": {
-        "console": {
-            "format": "[%(levelname)s] %(name)s: %(message)s",
-        },
-        "json": {
-            "()": "pythonjsonlogger.json.JsonFormatter",
-            "fmt": (
-                "%(asctime)s %(levelname)s %(name)s %(message)s "
-                "%(request_id)s %(method)s %(path)s "
-                "%(filename)s:%(lineno)d"
-            ),
-        },
-    },
-    "handlers": {
-        "app_json": {
-            "class": "logging.StreamHandler",
-            "filters": ["contextvars"],
-            "formatter": "json",
-            "level": LOG_LEVEL,
-        },
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "console",
-            "level": "INFO",
-        },
-    },
-    "loggers": {
-        "issuance": {
-            "handlers": ["app_json"],
-            "level": LOG_LEVEL,
-            "propagate": False,
-        },
-    },
-    "root": {"handlers": ["console"], "level": LOG_LEVEL},
-}
 
 # REST_FRAMEWORK = {
 #     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -572,14 +558,20 @@ SWAGGER_SETTINGS = {
 }
 
 
-# TODO pendiente de ver si será la misma url base de IDENTFY_CONNECTOR_API_URL
-IDENTFY_QR_ISSUANCE_URL = os.getenv("IDENTFY_QR_ISSUANCE_URL")
 KEYCLOAK_JWKS_URL = os.getenv("KEYCLOAK_JWKS_URL")
 IDENTFY_CONNECTOR_API_URL = os.getenv("IDENTFY_CONNECTOR_API_URL", "")
+IDENTFY_CONNECTOR_API_KEY = os.getenv("IDENTFY_CONNECTOR_API_KEY", "")
 TMF_API_URL = os.getenv("TMF_API_URL", "")
+MANAGEMENT_API_URL = os.getenv("MANAGEMENT_API_URL", "")
 
 PROMETHEUS_METRIC_NAMESPACE = os.environ.get("PROMETHEUS_METRIC_NAMESPACE", "")
 
+
+FUNCTION_REQUIRED = "Identity"
+POWER_REQUIRED = [
+    {"type": ["organization"], "domain": ["ISBE", "*"], "function": [FUNCTION_REQUIRED], "action": ["*", "write"]},
+    {"type": ["domain"], "domain": ["ISBE"], "function": [FUNCTION_REQUIRED], "action": ["*", "write"]},
+]
 
 try:
     from .settings_local import *

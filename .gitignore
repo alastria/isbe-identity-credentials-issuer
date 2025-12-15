@@ -138,3 +138,5 @@ local-init.sh
 docker-compose-local.yml
 
 .data
+
+.env*
