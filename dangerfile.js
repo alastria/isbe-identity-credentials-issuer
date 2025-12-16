@@ -15,6 +15,7 @@
 *
 */
 
+
 import { danger, fail, markdown, message } from 'danger'
 const jiraIssue = require('danger-plugin-jira-issue').default
 const fs = require('fs')

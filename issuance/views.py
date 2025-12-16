@@ -98,6 +98,7 @@ def representative_issuance(request):
                 "The requested powers are not authorized for the organization",
             )
 
+
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
         if not vc_type:
             raise Exception("VC type for representative is not configured")
@@ -439,7 +440,7 @@ def get_claims_view(request):
         if email:  # TODO: revisar, no encuentro donde se obtiene ese dato
             claims["mandate"]["mandator"]["email"] = email
         # TODO: se obtienen datos de data["organizationIdentification"][0]["attachment"]["content"] es un base64 con una credencial
-
+        
         if issued_credential.credential_type == "employee":
             claims["mandate"]["mandatee"] = {
                 "employeId": issued_credential.body_data.get("employeId"),
@@ -447,7 +448,6 @@ def get_claims_view(request):
                 "firstName": issued_credential.body_data.get("firstName"),
                 "lastName": issued_credential.body_data.get("lastName"),
             }
-
         else:
             # TODO: De momento listado vacio. Error 404 Client Not Found for url: https://tmf.evidenceledger.eu/tmf-api/party/v4/individual/urn:ngsi-ld:individual:NTRIES-B12345678"
             # data = tmf_get_individual(issued_credential.organization_identifier)
