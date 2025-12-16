@@ -35,7 +35,7 @@ def get_qr(preauth_code, vc_type: str) -> tuple[bytes, str]:
     return resp.content, ctype
 
 
-def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) -> dict:
+def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str, expires_in: int) -> dict:
     headers = {
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
@@ -44,7 +44,7 @@ def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str) 
         "profile": profile,
         "vc_types": [vc_type],
         "subject_id": subject_id,
-        # "expires_in?": number,
+        "expires_in": expires_in,
         # "tx_code?": {input_mode, length, description},
     }
     resp = requests.post(f"{get_url_base_for_connector()}/preauth-code", headers=headers, json=paylod)

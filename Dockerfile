@@ -52,4 +52,6 @@ RUN python3 manage.py compilemessages -l es_ES
 #     python3 manage.py collectstatic --no-input; \
 #     fi
 
+RUN python3 manage.py collectstatic --no-input;
+
 CMD [ "sh", "./entrypoint.sh" ]
