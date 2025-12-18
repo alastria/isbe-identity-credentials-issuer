@@ -98,7 +98,6 @@ def representative_issuance(request):
                 "The requested powers are not authorized for the organization",
             )
 
-
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="representative").first()
         if not vc_type:
             raise Exception("VC type for representative is not configured")
@@ -187,7 +186,9 @@ def employee_issuance(request):
         if not get_profile():
             raise Exception("PROFILE not configured")
         subject_id = f"{serializer['email'].value}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        preauth_result = identify_register_preauth_code(get_profile().value, vc_type.value, subject_id, 2*24*60*60)
+        preauth_result = identify_register_preauth_code(
+            get_profile().value, vc_type.value, subject_id, 2 * 24 * 60 * 60
+        )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
         qr_content, qr_ctype = get_qr(preauth_result["preauth_code"], vc_type.value)
@@ -440,7 +441,7 @@ def get_claims_view(request):
         if email:  # TODO: revisar, no encuentro donde se obtiene ese dato
             claims["mandate"]["mandator"]["email"] = email
         # TODO: se obtienen datos de data["organizationIdentification"][0]["attachment"]["content"] es un base64 con una credencial
-        
+
         if issued_credential.credential_type == "employee":
             claims["mandate"]["mandatee"] = {
                 "employeId": issued_credential.body_data.get("employeId"),
@@ -755,10 +756,15 @@ def _get_credentials_by_organization_identifier(request, organization_identifier
             query = (
                 IssuedCredential.objects.filter(organization_identifier=organization_identifier)
                 .filter(employee_id=employee_id)
+                .filter(status__in=[IssuedCredentialStatus.ISSUED.value, IssuedCredentialStatus.REVOKED.value])
                 .all()
             )
         elif organization_identifier:
-            query = IssuedCredential.objects.filter(organization_identifier=organization_identifier).all()
+            query = (
+                IssuedCredential.objects.filter(organization_identifier=organization_identifier)
+                .filter(status__in=[IssuedCredentialStatus.ISSUED.value, IssuedCredentialStatus.REVOKED.value])
+                .all()
+            )
         else:
             query = IssuedCredential.objects.all()
         query = query.order_by("-creation_at")

@@ -41,7 +41,7 @@ def get_vc_types_enum():
 
 # TODO: pendiente de conocer los estados definitivos de las credenciales emitidas por IDP
 IssuedCredentialStatus = Enum(
-    "IssuedCredentialStatus", {"PENDING": "pending", "ACTIVE": "active", "REVOKED": "revoked"}
+    "IssuedCredentialStatus", {"PENDING": "pending", "ISSUED": "issued", "REVOKED": "revoked"}
 )
 # Example usage:
 # print(IssuedCredentialStatus.PENDING)
