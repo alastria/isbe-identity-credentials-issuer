@@ -93,7 +93,7 @@ class LaunchScheduler:
         if not LaunchScheduler.scheduler.get_job(JOB_NAME):
             LaunchScheduler.scheduler.add_job(
                 delete_pending_expired_credentials_job,
-                trigger=CronTrigger(minute="*", hour="*", day="*", month="*", day_of_week="*"),  # every hour
+                trigger=CronTrigger(minute="0", hour="*", day="*", month="*", day_of_week="*"),  # every hour
                 id=JOB_NAME,  # The `id` assigned to each job MUST be unique
                 replace_existing=True,
             )
