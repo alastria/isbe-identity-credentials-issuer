@@ -103,8 +103,8 @@ jobs:
           echo "🛑 TMF_API_URL is not set in variables"
           exit 1
         fi
-        if [[ -z "${{ vars.KEYCLOAK_JWKS_URL }}" ]]; then
-          echo "🛑 KEYCLOAK_JWKS_URL is not set in variables"
+        if [[ -z "${{ vars.KEYCLOAK_JWKS_URI }}" ]]; then
+          echo "🛑 KEYCLOAK_JWKS_URI is not set in variables"
           exit 1
         fi
         if [[ -z "${{ secrets.EMAIL_HOST_PASSWORD }}" ]]; then
@@ -175,7 +175,7 @@ jobs:
         IDENTFY_CONNECTOR_API_URL: ${{ vars.IDENTFY_CONNECTOR_API_URL }}
         IDENTFY_CONNECTOR_API_KEY: ${{ secrets.IDENTFY_CONNECTOR_API_KEY }}
         TMF_API_URL: ${{ vars.TMF_API_URL }}
-        KEYCLOAK_JWKS_URL: ${{ vars.KEYCLOAK_JWKS_URL }}
+        KEYCLOAK_JWKS_URI: ${{ vars.KEYCLOAK_JWKS_URI }}
         EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
         MANAGEMENT_API_URL: ${{ vars.MANAGEMENT_API_URL }}
         EMAIL_HOST: ${{ vars.EMAIL_HOST }}

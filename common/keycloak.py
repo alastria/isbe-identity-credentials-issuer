@@ -17,14 +17,14 @@ import requests
 from jose import jwt
 from jose.exceptions import JWTError
 
-from project.settings import KEYCLOAK_JWKS_URL
+from project.settings import KEYCLOAK_JWKS_URI
 
-if not KEYCLOAK_JWKS_URL:
-    raise Exception("KEYCLOAK_JWKS_URL setting is missing")
+if not KEYCLOAK_JWKS_URI:
+    raise Exception("KEYCLOAK_JWKS_URI setting is missing")
 
 
 def _get_jwks() -> dict:
-    resp = requests.get(KEYCLOAK_JWKS_URL)
+    resp = requests.get(KEYCLOAK_JWKS_URI)
     resp.raise_for_status()
     return resp.json()
 

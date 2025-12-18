@@ -46,6 +46,7 @@ from issuance.serializers import (
     ListIdentifiersSerializer,
     NotificationSerializer,
 )
+from project import settings
 from project.settings import FUNCTION_REQUIRED
 
 log = logging.getLogger(__name__)
@@ -105,13 +106,16 @@ def representative_issuance(request):
         if not profile:
             raise Exception("PROFILE not configured")
         subject_id = f"{token_data.get('organization_identifier')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        preauth_result = identify_register_preauth_code(profile.value, vc_type.value, subject_id, 500)
+        preauth_result = identify_register_preauth_code(
+            profile.value, vc_type.value, subject_id, settings.QR_EXPIRATION_TIME
+        )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
         qr_content, qr_ctype = get_qr(preauth_result["preauth_code"], vc_type.value)
         date_expires = datetime.now()
         date_expires = date_expires.replace(microsecond=0)
         date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
+
         IssuedCredential.objects.create(
             vc_type=vc_type.value,
             subject_id=subject_id,
@@ -124,6 +128,8 @@ def representative_issuance(request):
             credential_type="representative",
             employee_id=token_data.get("user_identifier", ""),
         )
+        if "email" in token_data and token_data["email"]:
+            send_email_user_enrollment(token_data["email"], qr_content)
         return HttpResponse(qr_content, content_type=qr_ctype)
     except Exception:
         traceback.print_exc()
@@ -187,7 +193,7 @@ def employee_issuance(request):
             raise Exception("PROFILE not configured")
         subject_id = f"{serializer['email'].value}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_result = identify_register_preauth_code(
-            get_profile().value, vc_type.value, subject_id, 2 * 24 * 60 * 60
+            get_profile().value, vc_type.value, subject_id, settings.QR_EMPLOYEE_EXPIRATION_TIME
         )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
