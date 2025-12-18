@@ -40,7 +40,7 @@ class IssuedCredentialAdmin(admin.ModelAdmin):
         "status",
         "credential_id",
         "creation_at",
-        "update_at",
+        "preauth_code_expires_in",
     )
     search_fields = ("vc_type", "subject_id", "organization_identifier", "status", "credential_type", "employee_id")
     list_filter = ("organization_identifier", "status", "credential_type", "employee_id")
