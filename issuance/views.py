@@ -24,7 +24,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 
-from common.auth import virifity_token_and_get_payload
+from common.auth import get_bearer_token_from_request, virifity_token_and_get_payload
 from common.identfy_connector import (
     get_qr,
     identify_get_credential,
@@ -90,8 +90,9 @@ def representative_issuance(request):
         #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
         #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
         #  del conjunto autorizado, en caso contrario se deniega la operación.
+        token = get_bearer_token_from_request(request)
         if not check_roles_in_polices(
-            token_data.get("organization_identifier"), serializer.validated_data.get("power", [])
+            token_data.get("organization_identifier"), serializer.validated_data.get("power", []), token
         ):
             return send_error(
                 status.HTTP_400_BAD_REQUEST,
@@ -177,8 +178,9 @@ def employee_issuance(request):
         #  autoriza asignar los poderes recibidos a la organización. Para ello es necesario consultar el servicio de gestión de roles
         #  y preguntar los roles y poderes autorizados a la organización. Todos los poderes recibidos en el POST deben formar parte
         #  del conjunto autorizado, en caso contrario se deniega la operación.
+        token = get_bearer_token_from_request(request)
         if not check_roles_in_polices(
-            token_data.get("organization_identifier"), serializer.validated_data.get("power", [])
+            token_data.get("organization_identifier"), serializer.validated_data.get("power", []), token
         ):
             return send_error(
                 status.HTTP_400_BAD_REQUEST,
@@ -595,7 +597,7 @@ def get_credentials(request):
     ],
     manual_parameters=[
         openapi.Parameter(
-            name="employee_id",
+            name="  ",
             in_=openapi.IN_QUERY,
             type=openapi.TYPE_STRING,
             description="Employee ID to filter issued credentials (optional)",

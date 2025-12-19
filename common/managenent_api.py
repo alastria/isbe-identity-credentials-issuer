@@ -18,10 +18,8 @@ import requests
 from project.settings import MANAGEMENT_API_URL
 
 
-def get_management_by_organization(organization_identifier: str) -> dict:
-    headers = {
-        "accept": "application/json",
-    }
+def get_management_by_organization(organization_identifier: str, token: str) -> dict:
+    headers = {"accept": "application/json", "Authorization": f"Bearer {token}"}
     resp = requests.get(f"{MANAGEMENT_API_URL}/managements/organization/{organization_identifier}", headers=headers)
     if resp.status_code == 404:
         return {}
@@ -30,8 +28,8 @@ def get_management_by_organization(organization_identifier: str) -> dict:
     return resp.json()
 
 
-def check_roles_in_polices(organization_identifier: str, powers: list[dict]) -> bool:
-    management = get_management_by_organization(organization_identifier)
+def check_roles_in_polices(organization_identifier: str, powers: list[dict], token: str) -> bool:
+    management = get_management_by_organization(organization_identifier, token)
     if not management or "role" not in management or "policies" not in management.get("role", {}):
         return False
     policies = management.get("role", {}).get("policies", [])
