@@ -13,9 +13,13 @@
 # limitations under the License.
 
 
+import logging
+
 import requests
 
 from project.settings import MANAGEMENT_API_URL
+
+log = logging.getLogger(__name__)
 
 
 def get_management_by_organization(organization_identifier: str, token: str) -> dict:
@@ -33,6 +37,7 @@ def check_roles_in_polices(organization_identifier: str, powers: list[dict], tok
     if not management or "role" not in management or "policies" not in management.get("role", {}):
         return False
     policies = management.get("role", {}).get("policies", [])
+    log.info(f"management policies : {policies}")
     # check all powers are in policies
     result = True
     for power in powers:

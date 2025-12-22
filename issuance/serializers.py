@@ -18,7 +18,7 @@ from rest_framework import serializers
 
 class IssueEmployeeCredentialSerializer(serializers.Serializer):
     power = serializers.ListField(child=serializers.DictField(), required=True)
-    employeId = serializers.CharField(required=True)
+    employeeId = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
     firstName = serializers.CharField(required=True)
     lastName = serializers.CharField(required=True)
