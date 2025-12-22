@@ -163,6 +163,7 @@ def employee_issuance(request):
         return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "invalid token")
 
     try:
+        log.info(f"token power: {token_data['power']}")
         missing = check_and_get_errors_access_token(token_data)
         if missing:
             return send_error(
@@ -213,7 +214,7 @@ def employee_issuance(request):
             organization_identifier=token_data.get("organization_identifier"),
             status=IssuedCredentialStatus.PENDING.value,
             credential_type="employee",
-            employee_id=serializer.validated_data.get("employeId", ""),
+            employee_id=serializer.validated_data.get("employeeId", ""),
         )
 
         send_email_user_enrollment(serializer["email"].value, qr_content)
@@ -415,7 +416,7 @@ def get_claims_view(request):
                     "email": "jean.mar@goodair.fr",
                 },
                 "mandatee": {
-                    "employeId": "A-12345678",
+                    "employeeId": "A-12345678",
                     "email": "jane.smith@goodair.com",
                     "firstName": "Jane",
                     "lastName": "Smith",
@@ -452,7 +453,7 @@ def get_claims_view(request):
 
         if issued_credential.credential_type == "employee":
             claims["mandate"]["mandatee"] = {
-                "employeId": issued_credential.body_data.get("employeId"),
+                "employeeId": issued_credential.body_data.get("employeeId"),
                 "email": issued_credential.body_data.get("email"),
                 "firstName": issued_credential.body_data.get("firstName"),
                 "lastName": issued_credential.body_data.get("lastName"),
@@ -473,7 +474,7 @@ def get_claims_view(request):
                 last_name = " ".join(issued_credential.token_data.get("name").split(" ")[1:])
 
             claims["mandate"]["mandatee"] = {
-                "employeId": issued_credential.token_data.get("user_identifier"),
+                "employeeId": issued_credential.token_data.get("user_identifier"),
                 "email": issued_credential.token_data.get("email"),
                 "firstName": first_name,
                 "lastName": last_name,
