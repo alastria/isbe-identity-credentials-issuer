@@ -25,6 +25,9 @@ from issuance.models import (
     CONFIG_KEY_INSTANCE,
     CONFIG_KEY_PROFILE,
     CONFIG_KEY_VC_TYPES,
+    CONFIG_URL_ANDROID,
+    CONFIG_URL_IOS,
+    CONFIG_URL_LOGIN,
     Configuration,
 )
 
@@ -59,4 +62,13 @@ class Command(BaseCommand):
         )
         Configuration.objects.get_or_create(
             key=CONFIG_KEY_VC_TYPES, tag="employee", defaults={"value": "IsbePortalLearCredential"}
+        )
+        Configuration.objects.get_or_create(
+            key=CONFIG_URL_LOGIN, defaults={"value": "https://poc-front.dev.cloud-w.envs.redisbe.com/login"}
+        )
+        Configuration.objects.get_or_create(
+            key=CONFIG_URL_IOS, defaults={"value": "https://testflight.apple.com/join/D4ud7GqF"}
+        )
+        Configuration.objects.get_or_create(
+            key=CONFIG_URL_ANDROID, defaults={"value": "https://play.google.com/apps/testing/com.isbewallet.app"}
         )

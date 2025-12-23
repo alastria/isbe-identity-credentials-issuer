@@ -23,6 +23,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
+from issuance.models import CONFIG_URL_ANDROID, CONFIG_URL_IOS, CONFIG_URL_LOGIN, Configuration
 from project import settings
 
 logger = logging.getLogger("django")
@@ -31,14 +32,23 @@ PATH_LOGO = os.path.join(settings.BASE_DIR, "issuance/static/images/logo_isbe.pn
 
 
 def send_email_user_enrollment(email_to, qr_content):
-    context = {"url": f"{settings.FRONTEND_URL}/user-enrollment", "qr_content": qr_content}
+    url_ios = Configuration.objects.filter(key=CONFIG_URL_IOS).first()
+    url_android = Configuration.objects.filter(key=CONFIG_URL_ANDROID).first()
+    url_login = Configuration.objects.filter(key=CONFIG_URL_LOGIN).first()
+
+    context = {
+        "url_login": url_login.value if url_login else "#",
+        "url_ios": url_ios.value if url_ios else "#",
+        "url_android": url_android.value if url_android else "#",
+        "qr_content": qr_content,
+    }
 
     email_plaintext_message = render_to_string("email/isbe/user_enrollment.html", context)
     email_html_message = render_to_string("email/isbe/user_enrollment.html", context)
 
     try:
         msg = EmailMultiAlternatives(
-            _("[ISBE] Has sido designado para completar el proceso técnico de enrolamiento en "),
+            _("[ISBE] Bienvenida y acceso al área privada de ISBE"),
             email_plaintext_message,
             settings.DEFAULT_FROM_EMAIL,
             [email_to],
