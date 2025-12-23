@@ -1,5 +1,7 @@
 # Backend-template
 
+[Manual de configuración](/docs/manual.md )
+
 
 ## Requirements
 
