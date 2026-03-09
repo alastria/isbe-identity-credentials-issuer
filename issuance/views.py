@@ -301,10 +301,7 @@ def list_identifiers(request):
     # [{”vc_type”:”LearVC”, “identfiers”: []]
 
     print("yeray")
-    print(JsonResponse(
-        [{"vc_name": issued_credential.vc_type, "vc_instances": [_vc_type_to_identifier(issued_credential.vc_type)]}],
-        safe=False,
-    ))
+    print([{"vc_name": issued_credential.vc_type, "vc_instances": [_vc_type_to_identifier(issued_credential.vc_type)]}])
     return JsonResponse(
         [{"vc_name": issued_credential.vc_type, "vc_instances": [_vc_type_to_identifier(issued_credential.vc_type)]}],
         safe=False,
