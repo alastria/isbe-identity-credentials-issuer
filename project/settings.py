@@ -266,7 +266,7 @@ POSTMARK = {
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 if not DEFAULT_FROM_EMAIL:
     # Mantener compatibilidad con .env antiguos
-    DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "no-reply@redisbe.com")
+    DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "soporte.isbe@alastria.io")
 
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.serviciodecorreo.es")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "no-reply@redisbe.com")
