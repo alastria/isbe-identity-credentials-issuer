@@ -112,7 +112,7 @@ def representative_issuance(request):
         )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
-        qr_content, qr_ctype = get_qr(preauth_result["preauth_code"], vc_type.value)
+        qr_content, qr_ctype = get_qr(preauth_result["preauth_code"])
         date_expires = datetime.now()
         date_expires = date_expires.replace(microsecond=0)
         date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
@@ -198,7 +198,7 @@ def employee_issuance(request):
         )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
-        qr_content, qr_ctype = get_qr(preauth_result["preauth_code"], vc_type.value)
+        qr_content, qr_ctype = get_qr(preauth_result["preauth_code"])
         date_expires = datetime.now()
         date_expires = date_expires.replace(microsecond=0)
         date_expires = date_expires + timedelta(seconds=preauth_result["expires_in"])
