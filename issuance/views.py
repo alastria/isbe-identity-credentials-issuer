@@ -108,7 +108,7 @@ def representative_issuance(request):
             raise Exception("PROFILE not configured")
         subject_id = f"{token_data.get('organization_identifier')}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_result = identify_register_preauth_code(
-            profile.value, vc_type.value, subject_id, settings.QR_EXPIRATION_TIME
+            vc_type.value, subject_id, settings.QR_EXPIRATION_TIME
         )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
@@ -192,11 +192,9 @@ def employee_issuance(request):
         vc_type = Configuration.objects.filter(key=CONFIG_KEY_VC_TYPES, tag="employee").first()
         if not vc_type:
             raise Exception("VC type for employee is not configured")
-        if not get_profile():
-            raise Exception("PROFILE not configured")
         subject_id = f"{serializer['email'].value}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
         preauth_result = identify_register_preauth_code(
-            get_profile().value, vc_type.value, subject_id, settings.QR_EMPLOYEE_EXPIRATION_TIME
+            vc_type.value, subject_id, settings.QR_EMPLOYEE_EXPIRATION_TIME
         )
         # {"preauth_code":"52c520b0-b0b6-40c7-8c62-d17b1cce920f","expires_in":300}
         log.info(f"Preauth code registered: {preauth_result}")
@@ -290,10 +288,10 @@ def list_identifiers(request):
     if not serializer.is_valid():
         return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
     data = serializer.validated_data
-    error = validate_request(data["app"], data["profile"], data["instance"])
+    error = validate_request(data["app"], data["profile"], data["group"])
     if error:
         return send_error(status.HTTP_404_NOT_FOUND, "Not found", error)
-    issued_credential = IssuedCredential.objects.filter(vc_type=data["vc_type"], subject_id=data["subject_id"]).first()
+    issued_credential = IssuedCredential.objects.filter(vc_type=data["vc_names"], subject_id=data["subject_id"]).first()
     if not issued_credential:
         return send_error(
             status.HTTP_404_NOT_FOUND,
@@ -303,16 +301,16 @@ def list_identifiers(request):
     # [{”vc_type”:”LearVC”, “identfiers”: []]
 
     return JsonResponse(
-        [{"vc_type": issued_credential.vc_type, "identifiers": [_vc_type_to_identier(issued_credential.vc_type)]}],
+        [{"vc_name": issued_credential.vc_type, "vc_instances": [_vc_type_to_identifier(issued_credential.vc_type)]}],
         safe=False,
     )
 
 
-def _vc_type_to_identier(vc_type: str) -> str:
+def _vc_type_to_identifier(vc_type: str) -> str:
     return f"isbe-{vc_type.lower()}"
 
 
-def _isbe_identier_to_vc_type(identifier: str) -> str:
+def _isbe_identifier_to_vc_type(identifier: str) -> str:
     if identifier.startswith("isbe-"):
         return identifier[5:]
     return identifier
@@ -390,11 +388,11 @@ def get_claims_view(request):
     if not serializer.is_valid():
         return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
     data = serializer.validated_data
-    error = validate_request(data["app"], data["profile"], data["instance"])
+    error = validate_request(data["app"], data["profile"], data["group"])
     if error:
         return send_error(status.HTTP_404_NOT_FOUND, "Not found", error)
     issued_credential = IssuedCredential.objects.filter(
-        vc_type__iexact=_isbe_identier_to_vc_type(data["vc_identifier"]), subject_id=data["subject_id"]
+        vc_type__iexact=_isbe_identifier_to_vc_type(data["vc_instance"]), subject_id=data["subject_id"]
     ).first()
     if not issued_credential:
         return send_error(
@@ -515,7 +513,7 @@ def handle_notifications(request):
             return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
 
         data = serializer.validated_data
-        error = validate_request(data["app"], data["profile"], data["instance"])
+        error = validate_request(data["app"], data["profile"], data["group"])
         if error:
             return send_error(status.HTTP_404_NOT_FOUND, "Not found", error)
         issued_credential = IssuedCredential.objects.filter(subject_id=data["subject_id"]).first()
@@ -523,7 +521,7 @@ def handle_notifications(request):
             return send_error(status.HTTP_404_NOT_FOUND, "Issued credential not found for the given subject_id")
 
         # Process the notification
-        log.info(f"Processing notification for credential ID: {data['credential_id']}, type: {data['type']}")
+        log.info(f"Processing notification for credential ID: {data['credential_id']}, type: {data['event']}")
         if issued_credential.credential_id and issued_credential.credential_id != data["credential_id"]:
             log.warning(
                 f"Credential ID mismatch: existing {issued_credential.credential_id}, notification {data['credential_id']}"
@@ -535,7 +533,7 @@ def handle_notifications(request):
             issued_credential.credential_data = identify_get_credential(data["credential_id"])
 
         issued_credential.credential_id = data["credential_id"]
-        issued_credential.status = data["type"]
+        issued_credential.status = data["event"]
         issued_credential.update_at = datetime.now()
         issued_credential.save()
 
@@ -745,7 +743,7 @@ def _get_credentials_by_organization_identifier(request, organization_identifier
                 status.HTTP_400_BAD_REQUEST, "Missing organization_identifier in parameter and access token"
             )
 
-    print("organization_identifier:", organization_identifier)
+    # print("organization_identifier:", organization_identifier)
     # check permissions
     if _check_permissions_in_get_credentials(token_data, organization_identifier) is False:
         return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "insufficient permissions")

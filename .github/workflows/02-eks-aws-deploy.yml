@@ -91,12 +91,16 @@ jobs:
           echo "🛑 DATABASE_URL is not set in secrets"
           exit 1
         fi
+        if [[ -z "${{ secrets.POSTMARK_API_KEY }}" ]]; then
+          echo "🛑 POSTMARK_API_KEY is not set in secrets"
+          exit 1
+        fi
         if [[ -z "${{ vars.IDENTFY_CONNECTOR_API_URL }}" ]]; then
           echo "🛑 IDENTFY_CONNECTOR_API_URL is not set in variables"
           exit 1
         fi
         if [[ -z "${{ secrets.IDENTFY_CONNECTOR_API_KEY }}" ]]; then
-          echo "🛑 IDENTFY_CONNECTOR_API_KEY is not set in variables"
+          echo "🛑 IDENTFY_CONNECTOR_API_KEY is not set in secrets"
           exit 1
         fi
         if [[ -z "${{ vars.TMF_API_URL }}" ]]; then
@@ -107,32 +111,8 @@ jobs:
           echo "🛑 KEYCLOAK_JWKS_URI is not set in variables"
           exit 1
         fi
-        if [[ -z "${{ secrets.EMAIL_HOST_PASSWORD }}" ]]; then
-          echo "🛑 EMAIL_HOST_PASSWORD is not set in secrets"
-          exit 1
-        fi
         if [[ -z "${{ vars.MANAGEMENT_API_URL }}" ]]; then
           echo "🛑 MANAGEMENT_API_URL is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_HOST }}" ]]; then
-          echo "🛑 EMAIL_HOST is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_PORT }}" ]]; then
-          echo "🛑 EMAIL_PORT is not set in variables 
-          exit 1"
-        fi
-        if [[ -z "${{ vars.EMAIL_USE_TLS }}" ]]; then
-          echo "🛑 EMAIL_USE_TLS is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_USE_SSL }}" ]]; then
-          echo "🛑 EMAIL_USE_SSL is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_HOST_USER }}" ]]; then
-          echo "🛑 EMAIL_HOST_USER is not set in variables"
           exit 1
         fi
         if [[ -z "${{ vars.DEFAULT_FROM_EMAIL }}" ]]; then
@@ -172,17 +152,12 @@ jobs:
         CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
         IDENTFY_CONNECTOR_API_URL: ${{ vars.IDENTFY_CONNECTOR_API_URL }}
         IDENTFY_CONNECTOR_API_KEY: ${{ secrets.IDENTFY_CONNECTOR_API_KEY }}
         TMF_API_URL: ${{ vars.TMF_API_URL }}
         KEYCLOAK_JWKS_URI: ${{ vars.KEYCLOAK_JWKS_URI }}
-        EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
         MANAGEMENT_API_URL: ${{ vars.MANAGEMENT_API_URL }}
-        EMAIL_HOST: ${{ vars.EMAIL_HOST }}
-        EMAIL_PORT: ${{ vars.EMAIL_PORT }}
-        EMAIL_USE_TLS: ${{ vars.EMAIL_USE_TLS }}
-        EMAIL_USE_SSL: ${{ vars.EMAIL_USE_SSL }}
-        EMAIL_HOST_USER: ${{ vars.EMAIL_HOST_USER }}
         DEFAULT_FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL }}
       run: |
         echo "🏗️ Environment: ${{ vars.ENVIRONMENT }}"

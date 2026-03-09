@@ -39,6 +39,9 @@ from django.utils.translation import gettext_lazy as _
 def readEnvBool(envVarName: str, default: bool) -> bool:
     return (os.environ.get(envVarName) in [True, "true", "TRUE", "True", "1", "t", "T"]) or default
 
+def readEnvInt(envVarName: str, default: int) -> int:
+    return int(os.environ.get(envVarName, default))
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -250,26 +253,44 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
-# Email settings
+
+# Email configuration
+
+POSTMARK_API_KEY = os.getenv("POSTMARK_API_KEY", "")
+POSTMARK = {
+    "TOKEN": POSTMARK_API_KEY,
+    "TEST_MODE": False,
+    "VERBOSITY": 0,
+}
+
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+if not DEFAULT_FROM_EMAIL:
+    # Mantener compatibilidad con .env antiguos
+    DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "no-reply@redisbe.com")
+
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.serviciodecorreo.es")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465))
-
-if os.environ.get("EMAIL_USE_TLS", "False") in ["True", "true", "1"]:
-    EMAIL_USE_TLS = True
-else:
-    EMAIL_USE_TLS = False
-if os.environ.get("EMAIL_USE_SSL", "False") in ["True", "true", "1"]:
-    EMAIL_USE_SSL = True
-    EMAIL_USE_TLS = False  # SSL and TLS cannot be used together
-else:
-    EMAIL_USE_SSL = False
-
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "no-reply@redisbe.com")
-DEFAULT_FROM_EMAIL = os.environ.get("SERVER_EMAIL", "no-reply@redisbe.com")
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_BACKEND = "postmarker.django.EmailBackend"
-#    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+if POSTMARK_API_KEY:
+    EMAIL_BACKEND = "postmarker.django.EmailBackend"
+    EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.postmarkapp.com")
+    EMAIL_HOST_USER = POSTMARK_API_KEY
+    EMAIL_HOST_PASSWORD = POSTMARK_API_KEY
+    EMAIL_PORT = readEnvInt("EMAIL_PORT", 587)
+    EMAIL_USE_SSL = readEnvBool("EMAIL_USE_SSL", None)
+    EMAIL_USE_TLS = readEnvBool("EMAIL_USE_TLS", None if EMAIL_USE_SSL else True)
+elif EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = readEnvInt("EMAIL_PORT", 465)
+    EMAIL_USE_TLS = readEnvBool("EMAIL_USE_TLS", None)
+    EMAIL_USE_SSL = readEnvBool("EMAIL_USE_SSL", None if EMAIL_USE_TLS else True)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    EMAIL_HOST = "localhost"
+    EMAIL_PORT = readEnvInt("EMAIL_PORT", 1025)
+    EMAIL_USE_TLS = readEnvBool("EMAIL_USE_TLS", None)
+    EMAIL_USE_SSL = readEnvBool("EMAIL_USE_SSL", None if EMAIL_USE_TLS else True)
 
 
 JAZZMIN_SETTINGS: Dict[str, Any] = {

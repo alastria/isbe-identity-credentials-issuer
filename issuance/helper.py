@@ -44,10 +44,9 @@ def validate_request(app: str, profile: str, instance: str) -> str | None:
     config_app = list.filter(key=CONFIG_KEY_APP).first()
     if not config_app or config_app.value != app:
         return "App not found"
-    config_instance = list.filter(key=CONFIG_KEY_INSTANCE).first()
-    print("instance:", instance)
-    if not config_instance or config_instance.value != instance:
-        return "Instance not found"
+    config_group = list.filter(key=CONFIG_KEY_INSTANCE).first()
+    if not config_group or config_group.value != instance:
+        return "Group not found"
     return None
 
 
@@ -65,19 +64,19 @@ def get_url_base_for_connector():
     profile = list.filter(key=CONFIG_KEY_PROFILE).first()
     if not profile:
         raise Exception("PROFILE not configured")
-    instance = list.filter(key=CONFIG_KEY_INSTANCE).first()
-    if not instance:
-        raise Exception("INSTANCE not configured")
+    group = list.filter(key=CONFIG_KEY_INSTANCE).first()
+    if not group:
+        raise Exception("GROUP not configured")
     if api_version.value == "-":
-        return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{profile.value}/{instance.value}"
-    return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{api_version.value}/{profile.value}/{instance.value}"
+        return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{profile.value}/{group.value}"
+    return f"{IDENTFY_CONNECTOR_API_URL}/{app.value}/{api_version.value}/{profile.value}/{group.value}"
 
 
 def get_url_base_for_connector_credential():
     api_version = Configuration.objects.filter(key=CONFIG_KEY_API_VERSION).first()
     if not api_version:
         raise Exception("API_VERSION not configured")
-    return f"{IDENTFY_CONNECTOR_API_URL}/issuer/{api_version.value}/credentials"
+    return f"{IDENTFY_CONNECTOR_API_URL}/documents/{api_version.value}/credentials"
 
 
 def check_and_get_errors_access_token(claims: dict) -> bool:
@@ -118,7 +117,7 @@ def check_and_get_errors_access_token(claims: dict) -> bool:
             if has_power:
                 break
         if not has_power:
-            missing.append("thre is no required power for this operation")
+            missing.append("there is no required power for this operation")
     else:
         missing.append("power is missing or invalid")
 
