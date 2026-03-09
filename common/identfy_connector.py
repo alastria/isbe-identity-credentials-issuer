@@ -24,8 +24,6 @@ def get_qr(preauth_code) -> tuple[bytes, str]:
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
-    print("yeray")
-    print(get_url_base_for_connector() + "/credential-offer?response_mode=qr&preauth_code=" + preauth_code )
     resp = requests.get(get_url_base_for_connector() + "/credential-offer?response_mode=qr&preauth_code=" + preauth_code , headers=headers, timeout=8)
     # resp = requests.get(
     #    "https://identfy.izer.tech/95b3d953-6ac2-40c8-8707-b5f58dbb2279/credential-offer/qr", headers=headers, timeout=8
