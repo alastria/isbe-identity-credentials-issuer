@@ -300,8 +300,6 @@ def list_identifiers(request):
         )
     # [{”vc_type”:”LearVC”, “identfiers”: []]
 
-    print("yeray")
-    print([{"vc_name": issued_credential.vc_type, "vc_instances": [_vc_type_to_identifier(issued_credential.vc_type)]}])
     return JsonResponse(
         [{"vc_name": issued_credential.vc_type, "vc_instances": [_vc_type_to_identifier(issued_credential.vc_type)]}],
         safe=False,
@@ -481,7 +479,7 @@ def get_claims_view(request):
             }
         issued_credential.tmf_claims = data
         issued_credential.save()
-        print({"claims": claims, "additional_claims": {}})
+
         return JsonResponse({"claims": claims, "additional_claims": {}}, safe=False)
     except Exception as e:
         traceback.print_exc()
@@ -523,19 +521,20 @@ def handle_notifications(request):
         if not issued_credential:
             return send_error(status.HTTP_404_NOT_FOUND, "Issued credential not found for the given subject_id")
 
-        # Process the notification
-        log.info(f"Processing notification for credential ID: {data['credential_id']}, type: {data['event']}")
-        if issued_credential.credential_id and issued_credential.credential_id != data["credential_id"]:
-            log.warning(
-                f"Credential ID mismatch: existing {issued_credential.credential_id}, notification {data['credential_id']}"
-            )
-            return send_error(status.HTTP_400_BAD_REQUEST, "Credential ID mismatch")
+        # si data['credential_id'] no está definido, hacemos return
+        if "credential_id" in data:
+            # Process the notification
+            log.info(f"Processing notification for credential ID: {data['credential_id']}, type: {data['event']}")
+            if issued_credential.credential_id and issued_credential.credential_id != data["credential_id"]:
+                log.warning(
+                    f"Credential ID mismatch: existing {issued_credential.credential_id}, notification {data['credential_id']}"
+                )
+                return send_error(status.HTTP_400_BAD_REQUEST, "Credential ID mismatch")
+            if not issued_credential.credential_id and data["credential_id"]:
+                # Update the credential ID if not set before
+                issued_credential.credential_data = identify_get_credential(data["credential_id"])
+            issued_credential.credential_id = data["credential_id"]
 
-        if not issued_credential.credential_id and data["credential_id"]:
-            # Update the credential ID if not set before
-            issued_credential.credential_data = identify_get_credential(data["credential_id"])
-
-        issued_credential.credential_id = data["credential_id"]
         issued_credential.status = data["event"]
         issued_credential.update_at = datetime.now()
         issued_credential.save()
