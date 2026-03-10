@@ -532,7 +532,10 @@ def handle_notifications(request):
                 return send_error(status.HTTP_400_BAD_REQUEST, "Credential ID mismatch")
             if not issued_credential.credential_id and data["credential_id"]:
                 # Update the credential ID if not set before
-                issued_credential.credential_data = identify_get_credential(data["credential_id"])
+                try:
+                    issued_credential.credential_data = identify_get_credential(data["credential_id"])
+                except Exception as e:
+                    log.warning(f"Error fetching credential {data['credential_id']}: {e}")
             issued_credential.credential_id = data["credential_id"]
 
         issued_credential.status = data["event"]
