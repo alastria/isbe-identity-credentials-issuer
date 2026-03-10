@@ -50,7 +50,7 @@ class NotificationSerializer(serializers.Serializer):
     group = serializers.CharField(required=True)
     profile = serializers.CharField(required=True)
     subject_id = serializers.CharField(required=True)
-    credential_id = serializers.CharField(required=True)
+    credential_id = serializers.CharField(required=False, allow_blank=True)
     event = serializers.CharField(required=True)
 
 

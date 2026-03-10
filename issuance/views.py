@@ -481,6 +481,7 @@ def get_claims_view(request):
             }
         issued_credential.tmf_claims = data
         issued_credential.save()
+        print({"claims": claims, "additional_claims": {}})
         return JsonResponse({"claims": claims, "additional_claims": {}}, safe=False)
     except Exception as e:
         traceback.print_exc()
