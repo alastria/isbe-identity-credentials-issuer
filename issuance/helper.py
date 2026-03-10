@@ -76,7 +76,7 @@ def get_url_base_for_connector_credential():
     api_version = Configuration.objects.filter(key=CONFIG_KEY_API_VERSION).first()
     if not api_version:
         raise Exception("API_VERSION not configured")
-    return f"{IDENTFY_CONNECTOR_API_URL}/documents/{api_version.value}/credentials"
+    return f"{IDENTFY_CONNECTOR_API_URL}/documents/{api_version.value}/credentials/issued"
 
 
 def check_and_get_errors_access_token(claims: dict) -> bool:
