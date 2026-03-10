@@ -481,7 +481,7 @@ def get_claims_view(request):
             }
         issued_credential.tmf_claims = data
         issued_credential.save()
-        return JsonResponse({"subject_claims": claims, "additional_claims": {}, "context_claims": {}}, safe=False)
+        return JsonResponse({"claims": claims, "additional_claims": {}}, safe=False)
     except Exception as e:
         traceback.print_exc()
         log.error(f"Error fetching organization data from TMF API: {e}")
