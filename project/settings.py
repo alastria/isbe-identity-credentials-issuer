@@ -33,7 +33,6 @@ from uuid import uuid4
 
 import environ
 import sentry_sdk
-from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
 
@@ -152,9 +151,7 @@ MIDDLEWARE = [
 # Connection with Frontend
 FRONTEND_URL = os.environ.get("FRONTEND_URL", None)
 
-API_KEY = os.environ.get("API_KEY", "").strip()
-if not API_KEY:
-    raise ImproperlyConfigured("API_KEY environment variable is required and cannot be empty")
+API_KEY = os.getenv("API_KEY", "").strip()
 
 CORS_ORIGIN_ALLOW_ALL: bool = readEnvBool("CORS_ORIGIN_ALLOW_ALL", False)
 CORS_ALLOWED_ORIGINS: List[str] = os.environ.get(
