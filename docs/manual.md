@@ -26,11 +26,6 @@ Variables:
 - CORS_ALLOWED_ORIGINS: Orígenes permitidos para solicitudes CORS, separados por comas.
 - CSRF_TRUSTED_ORIGINS: Orígenes confiables para protección CSRF.
 - DEFAULT_FROM_EMAIL: Dirección de correo utilizada como remitente por defecto en los envíos de email.
-- EMAIL_HOST: Servidor SMTP utilizado para el envío de correos electrónicos.
-- EMAIL_HOST_USER: Usuario para autenticación en el servidor SMTP.
-- EMAIL_PORT: Puerto utilizado para la conexión SMTP.
-- EMAIL_USE_SSL: Indica si se debe usar SSL para la conexión SMTP.
-- EMAIL_USE_TLS: Indica si se debe usar TLS para la conexión SMTP.
 - IDENTFY_CONNECTOR_API_URL: URL interna del conector Identfy para integración de servicios de identidad.
 - KEYCLOAK_JWKS_URI: URI para obtener las claves públicas JWKS de Keycloak para validación de tokens.
 - MANAGEMENT_API_URL: URL interna de la API de gestión del middleware.
@@ -38,7 +33,7 @@ Variables:
 
 Secretos (almacenados bajo el nombre isbe-identity-credentials-issuer):
 - DATABASE_URL: Cadena de conexión a la base de datos.
-- EMAIL_HOST_PASSWORD: Contraseña para el usuario de correo electrónico.
+- POSTMARK_API_KEY: API Key para el servicio de envío de correos.
 - IDENTFY_CONNECTOR_API_KEY: API Key para autenticación con el conector Identfy.
 - SECRET_KEY: Clave secreta utilizada por la aplicación para operaciones criptográficas y de seguridad.
 
@@ -50,11 +45,6 @@ Secretos (almacenados bajo el nombre isbe-identity-credentials-issuer):
     - CORS_ALLOWED_ORIGINS: https://identity-credentials-issuer.pro.cloud-w.envs.redisbe.com,https://poc-front.pro.cloud-w.envs.redisbe.com
     - CSRF_TRUSTED_ORIGINS: https://identity-credentials-issuer.pro.cloud-w.envs.redisbe.com
     - DEFAULT_FROM_EMAIL: no-reply@redisbe.com
-    - EMAIL_HOST: smtp.serviciodecorreo.es
-    - EMAIL_HOST_USER: no-reply@redisbe.com
-    - EMAIL_PORT: 465
-    - EMAIL_USE_SSL: true
-    - EMAIL_USE_TLS: false
     - IDENTFY_CONNECTOR_API_URL: http://izertis-identfy-connector.portal-apps.svc.cluster.local:3000
     - KEYCLOAK_JWKS_URI: http://keycloakx-http.keycloak-idp.svc.cluster.local/auth/realms/pro-isbe/protocol/openid-connect/certs
     - MANAGEMENT_API_URL: http://isbe-poc-middleware-management.portal-apps.svc.cluster.local:3000/api
@@ -62,6 +52,6 @@ Secretos (almacenados bajo el nombre isbe-identity-credentials-issuer):
 
 - Secrets
     - DATABASE_URL: XXXX
-    - EMAIL_HOST_PASSWORD: XXXX
+    - POSTMARK_API_KEY: XXXX
     - IDENTFY_CONNECTOR_API_KEY: XXXX
     - SECRET_KEY: XXXXX

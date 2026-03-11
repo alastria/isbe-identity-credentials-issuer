@@ -19,12 +19,12 @@ from issuance.helper import get_url_base_for_connector, get_url_base_for_connect
 from project import settings
 
 
-def get_qr(preauth_code, vc_type: str) -> tuple[bytes, str]:
+def get_qr(preauth_code) -> tuple[bytes, str]:
     headers = {
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
-    resp = requests.get(get_url_base_for_connector() + "/credential-offer?response_mode=qr&preauth_code=" + preauth_code + "&vc_type=" + vc_type, headers=headers, timeout=8)
+    resp = requests.get(get_url_base_for_connector() + "/credential-offer?response_mode=qr&preauth_code=" + preauth_code , headers=headers, timeout=8)
     # resp = requests.get(
     #    "https://identfy.izer.tech/95b3d953-6ac2-40c8-8707-b5f58dbb2279/credential-offer/qr", headers=headers, timeout=8
     # )
@@ -35,14 +35,13 @@ def get_qr(preauth_code, vc_type: str) -> tuple[bytes, str]:
     return resp.content, ctype
 
 
-def identify_register_preauth_code(profile: str, vc_type: str, subject_id: str, expires_in: int) -> dict:
+def identify_register_preauth_code(vc_type: str, subject_id: str, expires_in: int) -> dict:
     headers = {
         "accept": "application/json",
         "x-api-key": settings.IDENTFY_CONNECTOR_API_KEY,
     }
     paylod = {
-        "profile": profile,
-        "vc_types": [vc_type],
+        "vc_names": [vc_type],
         "subject_id": subject_id,
         "expires_in": expires_in,
         # "tx_code?": {input_mode, length, description},

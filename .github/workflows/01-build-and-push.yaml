@@ -1,0 +1,137 @@
+name: 1) Build and push
+
+description: Build and push Docker image + Helm chart to ECR using a required tag input. If the tag does not exist, the build uses the selected branch and publishes with the provided tag.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment.
+        required: true
+        default: develop
+        type: string
+      ref:
+        description: Required tag to publish. If the tag exists, build from that tag; otherwise build from the selected branch and publish with this tag.
+        required: true
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-save:
+    name: Build Docker + Push Helm chart
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Check variables and secrets
+        run: |
+          if [[ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]]; then
+            echo "🛑 AWS_ACCESS_KEY_ID is not set in secrets"
+            exit 1
+          fi
+          if [[ -z "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]]; then
+            echo "🛑 AWS_SECRET_ACCESS_KEY is not set in secrets"
+            exit 1
+          fi
+          if [[ -z "${{ vars.AWS_REGION }}" ]]; then
+            echo "🛑 AWS_REGION is not set in variables"
+            exit 1
+          fi
+          if [[ -z "${{ vars.APP_NAME }}" ]]; then
+            echo "🛑 APP_NAME is not set in variables"
+            exit 1
+          fi
+
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config --local user.email "action.github.com"
+          git config --local user.name "Github Action"
+
+      - name: Resolve source ref
+        id: resolve-vars
+        env:
+          INPUT_REF: ${{ github.event.inputs.ref }}
+          SELECTED_BRANCH: ${{ github.ref_name }}
+        run: |
+          SOURCE_TAG="${INPUT_REF}"
+          PUBLISH_TAG="${SOURCE_TAG}"
+          if [[ "${PUBLISH_TAG}" == v* ]]; then
+            PUBLISH_TAG="${PUBLISH_TAG#v}"
+          fi
+          if [[ "${PUBLISH_TAG}" == "latest" ]]; then
+            PUBLISH_TAG="0.0.0-latest"
+          fi
+
+          echo "ℹ️ Input tag received: '${SOURCE_TAG}'"
+
+          if git rev-parse -q --verify "refs/tags/${SOURCE_TAG}" >/dev/null; then
+            echo "source_ref=${SOURCE_TAG}" >> $GITHUB_OUTPUT
+            echo "publish_tag=${PUBLISH_TAG}" >> $GITHUB_OUTPUT
+            echo "ref_type=tag" >> $GITHUB_OUTPUT
+            echo "✅ Tag '${SOURCE_TAG}' exists. Building from tag and publishing as '${PUBLISH_TAG}'"
+            exit 0
+          fi
+
+          SOURCE_REF="${SELECTED_BRANCH}"
+          echo "source_ref=${SOURCE_REF}" >> $GITHUB_OUTPUT
+          echo "publish_tag=${PUBLISH_TAG}" >> $GITHUB_OUTPUT
+          echo "ref_type=branch" >> $GITHUB_OUTPUT
+          echo "✅ Tag '${SOURCE_TAG}' does not exist. Building from branch '${SOURCE_REF}' latest commit and publishing as '${PUBLISH_TAG}'"
+
+      - name: Checkout source ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.resolve-vars.outputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build image and push to ECR
+        env:
+          ECR_REPOSITORY: ${{ vars.APP_NAME }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.resolve-vars.outputs.publish_tag }}
+        run: |
+          echo "🚧 Building and pushing Docker image to ECR..."
+          echo "📦 App name: ${ECR_REPOSITORY}"
+          echo "🏷️ Image tag: ${IMAGE_TAG}"
+          docker build -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} .
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+          echo "✅ Docker image pushed: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+      - name: Push Helm chart to ECR
+        env:
+          ECR_REPOSITORY_HELM: isbe-helm-charts
+          ECR_REPOSITORY: ${{ vars.APP_NAME }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.resolve-vars.outputs.publish_tag }}
+          APP_NAME: ${{ vars.APP_NAME }}
+        run: |
+          echo "🚀 Pushing Helm chart to ECR repository"
+          echo "🏷️ Chart version: ${IMAGE_TAG}"
+          echo "🏷️ ECR registry: ${ECR_REGISTRY}"
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | helm registry login --username AWS --password-stdin ${ECR_REGISTRY}
+          envsubst '$ECR_REGISTRY,$ECR_REPOSITORY,$APP_NAME,$IMAGE_TAG' < .helm/values.yaml > .helm/values.tmp.yaml
+          mv .helm/values.tmp.yaml .helm/values.yaml
+          cat .helm/values.yaml
+          helm package .helm --version ${IMAGE_TAG} --app-version ${IMAGE_TAG}
+          helm push ${APP_NAME}-${IMAGE_TAG}.tgz oci://${ECR_REGISTRY}/${ECR_REPOSITORY_HELM}
+          echo "✅ Helm chart pushed: oci://${ECR_REGISTRY}/${ECR_REPOSITORY_HELM}/${APP_NAME}:${IMAGE_TAG}"

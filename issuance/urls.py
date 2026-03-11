@@ -21,9 +21,9 @@ urlpatterns = [
     path("representative", views.representative_issuance, name="issuance-representative"),
     path("employee", views.employee_issuance, name="issuance-employee"),
     # identifiers
-    path("identifiers", views.list_identifiers, name="issuance-list-identifiers"),
+    path("instances", views.list_identifiers, name="issuance-list-identifiers"),
     path("claims", views.get_claims_view, name="issuance-get-claims"),
-    path("notifications", views.handle_notifications, name="issuance-handle-notifications"),
+    path("events", views.handle_notifications, name="issuance-handle-notifications"),
     path("credential", views.get_credentials, name="get-credentials"),
     path(
         "credential/<str:organization_identifier>",

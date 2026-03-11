@@ -1,17 +1,20 @@
 
-name: 2) EKS AWS Deploy to EKS Cluster
-description: Deploy the application to the EKS cluster from image ECR, using the helm deployment (in .helm folder)
+name: 2) Deploy
+description: Deploy the application to the specified environment on the EKS cluster from image ECR, using the helm deployment (in .helm folder)
 
 on:
   workflow_dispatch:
     inputs:
       version_tag:
-        description: 'Image tag to deploy (from ECR). If not provided, "latest" will be used'
-        required: false
+        description: 'Image tag to deploy (from ECR)'
+        required: true
+        default: latest
         type: string
-
-env:
-  IMAGE_TAG: "${{ github.event.inputs.version_tag || 'latest' }}"
+      environment:
+        description: 'GitHub Environment to deploy to'
+        required: true
+        default: develop
+        type: string
 
 permissions:
   contents: read
@@ -20,21 +23,13 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    # TODO: change to main or develop, or add other branches
-    environment: "${{ github.ref_name == 'main' && 'main' || github.ref_name == 'develop' && 'develop' || 'develop'  }}"
+
+    environment: ${{ github.event.inputs.environment }}
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
 
     - name: Check variables and secrets
       run: |
-        echo "🔑 DEPLOY status -> ${{ vars.DEPLOY }}"
-        if [[ -z "${{ vars.DEPLOY }}" || "${{ vars.DEPLOY }}" != "true" ]]; then
-          echo "⚠️ DEPLOY disabled, please set DEPLOY=true on Github in variables"
-          echo "⏭️ Skipping deployment step."
-          exit 1
-        fi
         if [[ -z "${{ secrets.AWS_ACCESS_KEY_ID }}" ]]; then
           echo "🛑 AWS_ACCESS_KEY_ID is not set in secrets"
           exit 1
@@ -91,12 +86,16 @@ jobs:
           echo "🛑 DATABASE_URL is not set in secrets"
           exit 1
         fi
+        if [[ -z "${{ secrets.POSTMARK_API_KEY }}" ]]; then
+          echo "🛑 POSTMARK_API_KEY is not set in secrets"
+          exit 1
+        fi
         if [[ -z "${{ vars.IDENTFY_CONNECTOR_API_URL }}" ]]; then
           echo "🛑 IDENTFY_CONNECTOR_API_URL is not set in variables"
           exit 1
         fi
         if [[ -z "${{ secrets.IDENTFY_CONNECTOR_API_KEY }}" ]]; then
-          echo "🛑 IDENTFY_CONNECTOR_API_KEY is not set in variables"
+          echo "🛑 IDENTFY_CONNECTOR_API_KEY is not set in secrets"
           exit 1
         fi
         if [[ -z "${{ vars.TMF_API_URL }}" ]]; then
@@ -107,32 +106,8 @@ jobs:
           echo "🛑 KEYCLOAK_JWKS_URI is not set in variables"
           exit 1
         fi
-        if [[ -z "${{ secrets.EMAIL_HOST_PASSWORD }}" ]]; then
-          echo "🛑 EMAIL_HOST_PASSWORD is not set in secrets"
-          exit 1
-        fi
         if [[ -z "${{ vars.MANAGEMENT_API_URL }}" ]]; then
           echo "🛑 MANAGEMENT_API_URL is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_HOST }}" ]]; then
-          echo "🛑 EMAIL_HOST is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_PORT }}" ]]; then
-          echo "🛑 EMAIL_PORT is not set in variables 
-          exit 1"
-        fi
-        if [[ -z "${{ vars.EMAIL_USE_TLS }}" ]]; then
-          echo "🛑 EMAIL_USE_TLS is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_USE_SSL }}" ]]; then
-          echo "🛑 EMAIL_USE_SSL is not set in variables"
-          exit 1
-        fi
-        if [[ -z "${{ vars.EMAIL_HOST_USER }}" ]]; then
-          echo "🛑 EMAIL_HOST_USER is not set in variables"
           exit 1
         fi
         if [[ -z "${{ vars.DEFAULT_FROM_EMAIL }}" ]]; then
@@ -154,11 +129,66 @@ jobs:
       run: |
         aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
 
+    - name: Normalize image tag
+      id: normalize-tag
+      env:
+        INPUT_IMAGE_TAG: ${{ github.event.inputs.version_tag }}
+      run: |
+        IMAGE_TAG="${INPUT_IMAGE_TAG}"
+        if [[ "${IMAGE_TAG}" == v* ]]; then
+          IMAGE_TAG="${IMAGE_TAG#v}"
+        fi
+        if [[ "${IMAGE_TAG}" == "latest" ]]; then
+          IMAGE_TAG="0.0.0-latest"
+        fi
+
+        echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+        echo "ℹ️ Input image tag: '${INPUT_IMAGE_TAG}'"
+        echo "✅ Deploy image tag: '${IMAGE_TAG}'"
+
+    - name: Pull Helm chart from ECR
+      id: pull-helm-chart
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        AWS_REGION: ${{ vars.AWS_REGION }}
+        CHART_TAG: ${{ steps.normalize-tag.outputs.image_tag }}
+        ECR_REPOSITORY: isbe-helm-charts/${{ vars.APP_NAME }}
+      run: |
+        echo " > Checking existing Helm chart in ECR..."
+        if ! aws ecr describe-images --repository-name "$ECR_REPOSITORY" --image-ids imageTag="$CHART_TAG" >/dev/null 2>&1; then
+          echo "❌ Helm chart $ECR_REGISTRY/$ECR_REPOSITORY:$CHART_TAG does not exist in ECR. Aborting deployment."
+          exit 1
+        fi
+        echo "👉🏻 ✅ Helm chart found: $ECR_REGISTRY/$ECR_REPOSITORY:$CHART_TAG"
+
+        echo " > Logging in Helm to OCI registry..."
+        aws ecr get-login-password --region "$AWS_REGION" | helm registry login --username AWS --password-stdin "$ECR_REGISTRY"
+
+        echo " > Pulling Helm chart from ECR..."
+        WORKDIR="$(mktemp -d)"
+        helm pull "oci://$ECR_REGISTRY/$ECR_REPOSITORY" --version "$CHART_TAG" --untar --untardir "$WORKDIR"
+
+        CHART_DIR="$(find "$WORKDIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+        if [[ -z "$CHART_DIR" ]]; then
+          echo "❌ Unable to locate extracted Helm chart directory"
+          exit 1
+        fi
+
+        if [[ ! -f "$CHART_DIR/values.yaml" ]]; then
+          echo "❌ values.yaml not found in pulled chart: $CHART_DIR"
+          exit 1
+        fi
+
+        echo "chart_dir=${CHART_DIR}" >> "$GITHUB_OUTPUT"
+        echo "✅ Using pulled Helm chart from: ${CHART_DIR}"
+
     - name: Deploy to EKS
       env:
         ECR_REPOSITORY: ${{ vars.APP_NAME }}
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        IMAGE_TAG: ${{ steps.normalize-tag.outputs.image_tag }}
+        CHART_DIR: ${{ steps.pull-helm-chart.outputs.chart_dir }}
+
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: ${{ vars.AWS_REGION }}
@@ -172,20 +202,15 @@ jobs:
         CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        POSTMARK_API_KEY: ${{ secrets.POSTMARK_API_KEY }}
         IDENTFY_CONNECTOR_API_URL: ${{ vars.IDENTFY_CONNECTOR_API_URL }}
         IDENTFY_CONNECTOR_API_KEY: ${{ secrets.IDENTFY_CONNECTOR_API_KEY }}
         TMF_API_URL: ${{ vars.TMF_API_URL }}
         KEYCLOAK_JWKS_URI: ${{ vars.KEYCLOAK_JWKS_URI }}
-        EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
         MANAGEMENT_API_URL: ${{ vars.MANAGEMENT_API_URL }}
-        EMAIL_HOST: ${{ vars.EMAIL_HOST }}
-        EMAIL_PORT: ${{ vars.EMAIL_PORT }}
-        EMAIL_USE_TLS: ${{ vars.EMAIL_USE_TLS }}
-        EMAIL_USE_SSL: ${{ vars.EMAIL_USE_SSL }}
-        EMAIL_HOST_USER: ${{ vars.EMAIL_HOST_USER }}
         DEFAULT_FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL }}
       run: |
-        echo "🏗️ Environment: ${{ vars.ENVIRONMENT }}"
+        echo "🏗️ Environment: ${{ github.event.inputs.environment }}"
         echo "🚀 Desplegando desde rama: ${{ github.ref_name }}"
         echo "📦 App name: ${{ vars.APP_NAME }}"
         echo "🏷️ Image tag: ${{ env.IMAGE_TAG }}"
@@ -200,26 +225,24 @@ jobs:
           exit 1
         fi
         echo "👉🏻 ✅ Image $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG "
-        
-        cd .helm
 
         # Install or Update Helm chart values with the correct image details
         echo " > Installing or Updating Helm chart with image details..."
 
-        envsubst < values.yaml | helm template . --debug --values - 
+        envsubst < "$CHART_DIR/values.yaml" | helm template "$CHART_DIR" --debug --values -
 
         echo " > Checking if deployment exists... (for example: sh.helm.release.v1.${{ vars.APP_NAME }}.v1)"
-        if kubectl -n ${{ vars.EKS_NAMESPACE }} get secrets | grep ${{ vars.APP_NAME }}.v; then
+        if kubectl -n ${{ vars.EKS_NAMESPACE }} get secrets | grep ${{ vars.APP_NAME }}.v; then 
           echo " > Deployment exists."
           echo " > Updating Helm chart values with image details..."
-          envsubst < values.yaml | helm upgrade ${{ vars.APP_NAME }} . --namespace ${{ vars.EKS_NAMESPACE }} --create-namespace --values -
+          envsubst < "$CHART_DIR/values.yaml" | helm upgrade ${{ vars.APP_NAME }} "$CHART_DIR" --namespace ${{ vars.EKS_NAMESPACE }} --create-namespace --values -
           # Force restart pods to pick up new environment variables from updated secrets/configmaps
           echo " > Restarting pods to pick up new environment variables..."
           kubectl -n ${{ vars.EKS_NAMESPACE }} rollout restart deployment ${{ vars.APP_NAME }}
         else
           echo " > Deployment does not exist."
           echo " > Installing Helm chart with image details..."
-          envsubst < values.yaml | helm install ${{ vars.APP_NAME }} . --debug --namespace ${{ vars.EKS_NAMESPACE }} --create-namespace --values -
+          envsubst < "$CHART_DIR/values.yaml" | helm install ${{ vars.APP_NAME }} "$CHART_DIR" --debug --namespace ${{ vars.EKS_NAMESPACE }} --create-namespace --values -
         fi
 
         #kubectl -n ${{ vars.EKS_NAMESPACE }} get pods -l app.kubernetes.io/name=${{ vars.APP_NAME }}
