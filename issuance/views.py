@@ -284,6 +284,10 @@ def employee_issuance(request):
 )
 @api_view(["GET"])
 def list_identifiers(request):
+    api_key_error = _validate_api_key(request)
+    if api_key_error:
+        return api_key_error
+
     serializer = ListIdentifiersSerializer(data=request.GET)
     if not serializer.is_valid():
         return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
@@ -314,6 +318,15 @@ def _isbe_identifier_to_vc_type(identifier: str) -> str:
     if identifier.startswith("isbe-"):
         return identifier[5:]
     return identifier
+
+
+def _validate_api_key(request):
+    request_api_key = request.headers.get("x-api-key", "").strip()
+    if not request_api_key:
+        return send_error(status.HTTP_401_UNAUTHORIZED, "Unauthorized", "x-api-key header is required")
+    if request_api_key != settings.API_KEY:
+        return send_error(status.HTTP_403_FORBIDDEN, "Forbidden", "invalid x-api-key")
+    return None
 
 
 @swagger_auto_schema(
@@ -384,6 +397,10 @@ def _isbe_identifier_to_vc_type(identifier: str) -> str:
 )
 @api_view(["GET"])
 def get_claims_view(request):
+    api_key_error = _validate_api_key(request)
+    if api_key_error:
+        return api_key_error
+
     serializer = GetClaimsSerializer(data=request.GET)
     if not serializer.is_valid():
         return send_error(status.HTTP_400_BAD_REQUEST, "Invalid data", str(serializer.errors))
@@ -507,6 +524,10 @@ def get_claims_view(request):
 @api_view(["POST"])
 def handle_notifications(request):
     try:
+        api_key_error = _validate_api_key(request)
+        if api_key_error:
+            return api_key_error
+
         data = request.data
         log.debug(f"Notification received: {data}")
         serializer = NotificationSerializer(data=data)

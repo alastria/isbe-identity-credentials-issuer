@@ -151,6 +151,8 @@ MIDDLEWARE = [
 # Connection with Frontend
 FRONTEND_URL = os.environ.get("FRONTEND_URL", None)
 
+API_KEY = os.getenv("API_KEY", "").strip()
+
 CORS_ORIGIN_ALLOW_ALL: bool = readEnvBool("CORS_ORIGIN_ALLOW_ALL", False)
 CORS_ALLOWED_ORIGINS: List[str] = os.environ.get(
     "CORS_ALLOWED_ORIGINS", "http://localhost:8000,http://localhost:3000"

@@ -114,6 +114,10 @@ jobs:
           echo "🛑 DEFAULT_FROM_EMAIL is not set in variables"  
           exit 1
         fi
+        if [[ -z "${{ secrets.API_KEY }}" ]]; then
+          echo "🛑 API_KEY is not set in secrets"  
+          exit 1
+        fi
         echo "✅ All required variables and secrets are set."
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -209,6 +213,7 @@ jobs:
         KEYCLOAK_JWKS_URI: ${{ vars.KEYCLOAK_JWKS_URI }}
         MANAGEMENT_API_URL: ${{ vars.MANAGEMENT_API_URL }}
         DEFAULT_FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL }}
+        API_KEY: ${{ secrets.API_KEY }}
       run: |
         echo "🏗️ Environment: ${{ github.event.inputs.environment }}"
         echo "🚀 Desplegando desde rama: ${{ github.ref_name }}"
