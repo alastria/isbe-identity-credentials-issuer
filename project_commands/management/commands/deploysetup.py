@@ -64,7 +64,7 @@ class Command(BaseCommand):
             key=CONFIG_KEY_VC_TYPES, tag="employee", defaults={"value": "IsbePortalLearCredential"}
         )
         Configuration.objects.get_or_create(
-            key=CONFIG_URL_LOGIN, defaults={"value": "https://poc-front.dev.cloud-w.envs.redisbe.com/login"}
+            key=CONFIG_URL_LOGIN, defaults={"value": "https://poc-front.pro.cloud-w.envs.redisbe.com/login"}
         )
         Configuration.objects.get_or_create(
             key=CONFIG_URL_IOS, defaults={"value": "https://testflight.apple.com/join/D4ud7GqF"}
